@@ -5,15 +5,23 @@ import type { QueryCondition, QueryField, QueryOption, QueryScalar } from './typ
 
 defineOptions({ name: 'QueryConditionEditor' })
 
-const props = defineProps<{
+/** Internal props for editing a single condition node. */
+interface QueryConditionEditorProps {
+  /** Condition represented by this editor instance. */
   condition: QueryCondition
+  /** Fields available for selection. */
   fields: QueryField[]
-}>()
+}
 
-const emit = defineEmits<{
+interface QueryConditionEditorEmits {
+  /** Emitted with an immutable replacement for this condition. */
   'update:condition': [condition: QueryCondition]
+  /** Requests removal of this condition from its parent group. */
   remove: []
-}>()
+}
+
+const props = defineProps<QueryConditionEditorProps>()
+const emit = defineEmits<QueryConditionEditorEmits>()
 
 const search = ref('')
 const loadedOptions = ref<QueryOption[]>([])
@@ -73,6 +81,7 @@ async function loadDynamicOptions() {
 watch(
   () => field.value?.key,
   () => {
+    // Loaded options belong to one field and must not leak into another selection.
     search.value = ''
     loadedOptions.value = []
     optionState.value = 'idle'

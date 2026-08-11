@@ -40,15 +40,18 @@ const DEFAULT_OPERATORS: Record<QueryFieldType, QueryOperator[]> = {
 
 let fallbackId = 0
 
+/** Creates a unique client-side ID for a condition or group. */
 export function createFilterId(prefix: 'condition' | 'group'): string {
   const randomId = globalThis.crypto?.randomUUID?.()
   return randomId ? `${prefix}-${randomId}` : `${prefix}-${++fallbackId}`
 }
 
+/** Returns a field's custom operators or the defaults for its type. */
 export function operatorsFor(field?: QueryField): QueryOperator[] {
   return field ? (field.operators ?? DEFAULT_OPERATORS[field.type]) : []
 }
 
+/** Returns the initial value to use when a condition selects the given field. */
 export function defaultValueFor(field?: QueryField): QueryScalar {
   if (!field) return null
   if (field.type === 'boolean') return true
@@ -56,6 +59,10 @@ export function defaultValueFor(field?: QueryField): QueryScalar {
   return ''
 }
 
+/**
+ * Creates a condition using the requested field, or the first available field.
+ * Supplied values override generated defaults.
+ */
 export function createCondition(
   fields: QueryField[],
   values: Partial<Omit<QueryCondition, 'kind'>> = {},
@@ -72,6 +79,7 @@ export function createCondition(
   }
 }
 
+/** Creates a query group with an optional set of child nodes. */
 export function createGroup(
   combinator: QueryGroup['combinator'] = 'and',
   children: QueryNode[] = [],
@@ -80,6 +88,10 @@ export function createGroup(
   return { id, kind: 'group', combinator, children }
 }
 
+/**
+ * Immutably appends a node to the group identified by `groupId`.
+ * The original query tree is never mutated.
+ */
 export function addChild(root: QueryGroup, groupId: string, child: QueryNode): QueryGroup {
   if (root.id === groupId) {
     return { ...root, children: [...root.children, child] }
@@ -93,6 +105,7 @@ export function addChild(root: QueryGroup, groupId: string, child: QueryNode): Q
   }
 }
 
+/** Immutably removes a condition or nested group by ID. */
 export function removeNode(root: QueryGroup, nodeId: string): QueryGroup {
   return {
     ...root,
@@ -102,6 +115,7 @@ export function removeNode(root: QueryGroup, nodeId: string): QueryGroup {
   }
 }
 
+/** Immutably applies changes to a condition anywhere in the tree. */
 export function updateCondition(
   root: QueryGroup,
   conditionId: string,
@@ -116,6 +130,7 @@ export function updateCondition(
   }
 }
 
+/** Immutably changes the combinator of a group anywhere in the tree. */
 export function updateGroup(
   root: QueryGroup,
   groupId: string,

@@ -2,20 +2,29 @@
 import QueryGroupEditor from './QueryGroupEditor.vue'
 import type { QueryField, QueryGroup } from './types'
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ name: 'QueryBuilder', inheritAttrs: false })
+
+/** Props accepted by the public query-builder component. */
+interface QueryBuilderProps {
+  /** Current query tree. Prefer binding this prop with `v-model`. */
+  modelValue: QueryGroup
+  /** Fields, operators, and selectable values available to the user. */
+  fields: QueryField[]
+  /** Accessible name for the root section. Use `aria-label` in templates. */
+  ariaLabel?: string
+}
+
+interface QueryBuilderEmits {
+  /** Emitted with a new immutable query tree after every edit. */
+  'update:modelValue': [query: QueryGroup]
+}
 
 withDefaults(
-  defineProps<{
-    modelValue: QueryGroup
-    fields: QueryField[]
-    ariaLabel?: string
-  }>(),
-  { ariaLabel: 'Filter builder' },
+  defineProps<QueryBuilderProps>(),
+  { ariaLabel: 'Query builder' },
 )
 
-const emit = defineEmits<{
-  'update:modelValue': [filter: QueryGroup]
-}>()
+const emit = defineEmits<QueryBuilderEmits>()
 </script>
 
 <template>

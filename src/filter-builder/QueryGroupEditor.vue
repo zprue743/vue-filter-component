@@ -5,16 +5,25 @@ import type { QueryCondition, QueryField, QueryGroup } from './types'
 
 defineOptions({ name: 'QueryGroupEditor' })
 
-const props = defineProps<{
+/** Internal props for rendering one recursive group in the query tree. */
+interface QueryGroupEditorProps {
+  /** Group represented by this editor instance. */
   group: QueryGroup
+  /** Fields available to conditions created within this group. */
   fields: QueryField[]
+  /** Marks the top-level group, which cannot be removed. */
   root?: boolean
-}>()
+}
 
-const emit = defineEmits<{
+interface QueryGroupEditorEmits {
+  /** Emitted with an immutable replacement for this group. */
   'update:group': [group: QueryGroup]
+  /** Requests removal of this group from its parent. */
   remove: []
-}>()
+}
+
+const props = defineProps<QueryGroupEditorProps>()
+const emit = defineEmits<QueryGroupEditorEmits>()
 
 function updateChild(index: number, child: QueryCondition | QueryGroup) {
   const children = [...props.group.children]

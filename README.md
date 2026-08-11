@@ -49,7 +49,7 @@ const filter = ref<QueryGroup>(createGroup())
 </template>
 ```
 
-`QueryBuilder` accepts `modelValue`, `fields`, and an optional `ariaLabel`, and emits `update:modelValue`. Vue's `v-model` provides the concise form shown above. Normal attributes such as `class` and `style` are forwarded to the root element.
+`QueryBuilder` accepts `modelValue`, `fields`, and an optional `ariaLabel` (`aria-label` in templates), and emits `update:modelValue`. Vue's `v-model` provides the concise form shown above. Normal attributes such as `class` and `style` are forwarded to the root element.
 
 ## Submitting a query
 
