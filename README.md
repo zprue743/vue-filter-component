@@ -51,6 +51,41 @@ const filter = ref<QueryGroup>(createGroup())
 
 `QueryBuilder` accepts `modelValue`, `fields`, and an optional `ariaLabel`, and emits `update:modelValue`. Vue's `v-model` provides the concise form shown above. Normal attributes such as `class` and `style` are forwarded to the root element.
 
+## Submitting a query
+
+`v-model` and `fields` are the only required bindings. The application can send the current query tree to its backend with a normal JSON request:
+
+```ts
+import type { QueryGroup } from './filter-builder'
+
+interface SubmitQueryRequest {
+  query: QueryGroup
+}
+
+interface SubmitQueryResponse {
+  id: string
+  status: 'accepted'
+}
+
+export async function submitQuery(query: QueryGroup): Promise<SubmitQueryResponse> {
+  const response = await fetch('/api/queries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query } satisfies SubmitQueryRequest),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Query request failed with status ${response.status}`)
+  }
+
+  return response.json() as Promise<SubmitQueryResponse>
+}
+```
+
+For example, a submit button can call `await submitQuery(query.value)`. A backend implementing `POST /api/queries` would receive a body shaped like `{ "query": QueryGroup }` and could return `202 Accepted` with `{ "id": "query-123", "status": "accepted" }`.
+
+The backend must validate field keys, operators, values, nesting depth, and authorization before translating the query tree into SQL or another data-store query. It should never interpolate client-provided fields or operators directly into SQL.
+
 ## Filter data
 
 The output is a JSON-safe discriminated tree:
