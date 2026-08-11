@@ -1,14 +1,14 @@
 import type {
-  FilterCondition,
-  FilterField,
-  FilterFieldType,
-  FilterGroup,
-  FilterNode,
-  FilterOperator,
-  FilterScalar,
+  QueryCondition,
+  QueryField,
+  QueryFieldType,
+  QueryGroup,
+  QueryNode,
+  QueryOperator,
+  QueryScalar,
 } from './types'
 
-const DEFAULT_OPERATORS: Record<FilterFieldType, FilterOperator[]> = {
+const DEFAULT_OPERATORS: Record<QueryFieldType, QueryOperator[]> = {
   string: [
     { value: 'eq', label: 'Equals' },
     { value: 'neq', label: 'Does not equal' },
@@ -45,11 +45,11 @@ export function createFilterId(prefix: 'condition' | 'group'): string {
   return randomId ? `${prefix}-${randomId}` : `${prefix}-${++fallbackId}`
 }
 
-export function operatorsFor(field?: FilterField): FilterOperator[] {
+export function operatorsFor(field?: QueryField): QueryOperator[] {
   return field ? (field.operators ?? DEFAULT_OPERATORS[field.type]) : []
 }
 
-export function defaultValueFor(field?: FilterField): FilterScalar {
+export function defaultValueFor(field?: QueryField): QueryScalar {
   if (!field) return null
   if (field.type === 'boolean') return true
   if (field.type === 'number') return null
@@ -57,9 +57,9 @@ export function defaultValueFor(field?: FilterField): FilterScalar {
 }
 
 export function createCondition(
-  fields: FilterField[],
-  values: Partial<Omit<FilterCondition, 'kind'>> = {},
-): FilterCondition {
+  fields: QueryField[],
+  values: Partial<Omit<QueryCondition, 'kind'>> = {},
+): QueryCondition {
   const field = fields.find((candidate) => candidate.key === values.field) ?? fields[0]
   const operator = values.operator ?? operatorsFor(field)[0]?.value ?? ''
 
@@ -73,14 +73,14 @@ export function createCondition(
 }
 
 export function createGroup(
-  combinator: FilterGroup['combinator'] = 'and',
-  children: FilterNode[] = [],
+  combinator: QueryGroup['combinator'] = 'and',
+  children: QueryNode[] = [],
   id = createFilterId('group'),
-): FilterGroup {
+): QueryGroup {
   return { id, kind: 'group', combinator, children }
 }
 
-export function addChild(root: FilterGroup, groupId: string, child: FilterNode): FilterGroup {
+export function addChild(root: QueryGroup, groupId: string, child: QueryNode): QueryGroup {
   if (root.id === groupId) {
     return { ...root, children: [...root.children, child] }
   }
@@ -93,7 +93,7 @@ export function addChild(root: FilterGroup, groupId: string, child: FilterNode):
   }
 }
 
-export function removeNode(root: FilterGroup, nodeId: string): FilterGroup {
+export function removeNode(root: QueryGroup, nodeId: string): QueryGroup {
   return {
     ...root,
     children: root.children
@@ -103,10 +103,10 @@ export function removeNode(root: FilterGroup, nodeId: string): FilterGroup {
 }
 
 export function updateCondition(
-  root: FilterGroup,
+  root: QueryGroup,
   conditionId: string,
-  changes: Partial<Omit<FilterCondition, 'id' | 'kind'>>,
-): FilterGroup {
+  changes: Partial<Omit<QueryCondition, 'id' | 'kind'>>,
+): QueryGroup {
   return {
     ...root,
     children: root.children.map((node) => {
@@ -117,10 +117,10 @@ export function updateCondition(
 }
 
 export function updateGroup(
-  root: FilterGroup,
+  root: QueryGroup,
   groupId: string,
-  changes: Partial<Pick<FilterGroup, 'combinator'>>,
-): FilterGroup {
+  changes: Partial<Pick<QueryGroup, 'combinator'>>,
+): QueryGroup {
   const updated = root.id === groupId ? { ...root, ...changes } : root
 
   return {

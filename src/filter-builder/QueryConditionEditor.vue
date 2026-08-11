@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { defaultValueFor, operatorsFor } from './tree'
-import type { FilterCondition, FilterField, FilterOption, FilterScalar } from './types'
+import type { QueryCondition, QueryField, QueryOption, QueryScalar } from './types'
+
+defineOptions({ name: 'QueryConditionEditor' })
 
 const props = defineProps<{
-  condition: FilterCondition
-  fields: FilterField[]
+  condition: QueryCondition
+  fields: QueryField[]
 }>()
 
 const emit = defineEmits<{
-  'update:condition': [condition: FilterCondition]
+  'update:condition': [condition: QueryCondition]
   remove: []
 }>()
 
 const search = ref('')
-const loadedOptions = ref<FilterOption[]>([])
+const loadedOptions = ref<QueryOption[]>([])
 const optionState = ref<'idle' | 'loading' | 'loaded' | 'empty' | 'error'>('idle')
 
 const field = computed(() => props.fields.find((item) => item.key === props.condition.field))
@@ -22,7 +24,7 @@ const operators = computed(() => operatorsFor(field.value))
 const options = computed(() => field.value?.options ?? loadedOptions.value)
 const isDynamicSelect = computed(() => field.value?.type === 'select' && Boolean(field.value.loadOptions))
 
-function update(changes: Partial<FilterCondition>) {
+function update(changes: Partial<QueryCondition>) {
   emit('update:condition', { ...props.condition, ...changes })
 }
 
@@ -42,7 +44,7 @@ function onOperatorChange(event: Event) {
 
 function onValueChange(event: Event) {
   const target = event.target as HTMLInputElement | HTMLSelectElement
-  let value: FilterScalar = target.value
+  let value: QueryScalar = target.value
 
   if (field.value?.type === 'number') value = target.value === '' ? null : Number(target.value)
   if (field.value?.type === 'boolean') value = target.value === 'true'

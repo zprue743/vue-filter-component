@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { createCondition, createGroup } from './tree'
-import FilterConditionEditor from './FilterConditionEditor.vue'
-import type { FilterCondition, FilterField, FilterGroup } from './types'
+import QueryConditionEditor from './QueryConditionEditor.vue'
+import type { QueryCondition, QueryField, QueryGroup } from './types'
 
-defineOptions({ name: 'FilterGroupEditor' })
+defineOptions({ name: 'QueryGroupEditor' })
 
 const props = defineProps<{
-  group: FilterGroup
-  fields: FilterField[]
+  group: QueryGroup
+  fields: QueryField[]
   root?: boolean
 }>()
 
 const emit = defineEmits<{
-  'update:group': [group: FilterGroup]
+  'update:group': [group: QueryGroup]
   remove: []
 }>()
 
-function updateChild(index: number, child: FilterCondition | FilterGroup) {
+function updateChild(index: number, child: QueryCondition | QueryGroup) {
   const children = [...props.group.children]
   children[index] = child
   emit('update:group', { ...props.group, children })
@@ -46,7 +46,7 @@ function addGroup() {
 function onCombinatorChange(event: Event) {
   emit('update:group', {
     ...props.group,
-    combinator: (event.target as HTMLSelectElement).value as FilterGroup['combinator'],
+    combinator: (event.target as HTMLSelectElement).value as QueryGroup['combinator'],
   })
 }
 </script>
@@ -86,14 +86,14 @@ function onCombinatorChange(event: Event) {
 
     <div v-else class="filter-group-children">
       <template v-for="(child, index) in group.children" :key="child.id">
-        <FilterGroupEditor
+        <QueryGroupEditor
           v-if="child.kind === 'group'"
           :group="child"
           :fields="fields"
           @update:group="updateChild(index, $event)"
           @remove="removeChild(index)"
         />
-        <FilterConditionEditor
+        <QueryConditionEditor
           v-else
           :condition="child"
           :fields="fields"

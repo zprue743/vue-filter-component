@@ -1,42 +1,42 @@
-export type FilterFieldType = 'string' | 'number' | 'date' | 'boolean' | 'select'
+export type QueryFieldType = 'string' | 'number' | 'date' | 'boolean' | 'select'
 
-export type FilterScalar = string | number | boolean | null
+export type QueryScalar = string | number | boolean | null
 
-export interface FilterOption {
-  value: Exclude<FilterScalar, null>
+export interface QueryOption {
+  value: Exclude<QueryScalar, null>
   label: string
 }
 
-export interface FilterOperator {
+export interface QueryOperator {
   value: string
   label: string
 }
 
-export type FilterOptionLoader = (search?: string) => Promise<FilterOption[]>
+export type QueryOptionLoader = (search?: string) => Promise<QueryOption[]>
 
-export interface FilterField {
+export interface QueryField {
   key: string
   label: string
-  type: FilterFieldType
-  operators?: FilterOperator[]
-  options?: FilterOption[]
-  loadOptions?: FilterOptionLoader
+  type: QueryFieldType
+  operators?: QueryOperator[]
+  options?: QueryOption[]
+  loadOptions?: QueryOptionLoader
   placeholder?: string
 }
 
-export interface FilterCondition {
+export interface QueryCondition {
   id: string
   kind: 'condition'
   field: string
   operator: string
-  value: FilterScalar
+  value: QueryScalar
 }
 
-export interface FilterGroup {
+export interface QueryGroup {
   id: string
   kind: 'group'
   combinator: 'and' | 'or'
-  children: FilterNode[]
+  children: QueryNode[]
 }
 
-export type FilterNode = FilterCondition | FilterGroup
+export type QueryNode = QueryCondition | QueryGroup

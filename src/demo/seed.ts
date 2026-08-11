@@ -1,6 +1,6 @@
-import type { FilterGroup } from '../filter-builder'
+import type { QueryGroup } from '../filter-builder'
 
-export const initialFilter: FilterGroup = {
+export const initialFilter: QueryGroup = {
   id: 'root',
   kind: 'group',
   combinator: 'and',

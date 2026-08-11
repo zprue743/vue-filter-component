@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import FilterGroupEditor from './FilterGroupEditor.vue'
-import type { FilterField, FilterGroup } from './types'
+import QueryGroupEditor from './QueryGroupEditor.vue'
+import type { QueryField, QueryGroup } from './types'
 
 defineOptions({ inheritAttrs: false })
 
 withDefaults(
   defineProps<{
-    modelValue: FilterGroup
-    fields: FilterField[]
+    modelValue: QueryGroup
+    fields: QueryField[]
     ariaLabel?: string
   }>(),
   { ariaLabel: 'Filter builder' },
 )
 
 const emit = defineEmits<{
-  'update:modelValue': [filter: FilterGroup]
+  'update:modelValue': [filter: QueryGroup]
 }>()
 </script>
 
 <template>
   <section class="filter-builder" :aria-label="ariaLabel" v-bind="$attrs">
-    <FilterGroupEditor
+    <QueryGroupEditor
       :group="modelValue"
       :fields="fields"
       root

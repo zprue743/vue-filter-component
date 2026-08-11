@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { FilterBuilder, type FilterGroup } from './filter-builder'
+import { QueryBuilder, type QueryGroup } from './filter-builder'
 import { demoFields } from './demo/fields'
 import { initialFilter } from './demo/seed'
 
-const filter = ref<FilterGroup>(structuredClone(initialFilter))
+const filter = ref<QueryGroup>(structuredClone(initialFilter))
 </script>
 
 <template>
@@ -14,7 +14,7 @@ const filter = ref<FilterGroup>(structuredClone(initialFilter))
       <p>A small, configuration-driven component for constructing reporting criteria.</p>
     </header>
 
-    <FilterBuilder v-model="filter" :fields="demoFields" />
+    <QueryBuilder v-model="filter" :fields="demoFields" />
 
     <section class="json-preview" aria-labelledby="json-heading">
       <h2 id="json-heading">Filter JSON</h2>

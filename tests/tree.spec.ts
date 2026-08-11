@@ -6,10 +6,10 @@ import {
   removeNode,
   updateCondition,
   updateGroup,
-  type FilterField,
+  type QueryField,
 } from '../src/filter-builder'
 
-const fields: FilterField[] = [
+const fields: QueryField[] = [
   { key: 'name', label: 'Name', type: 'string' },
   { key: 'amount', label: 'Amount', type: 'number' },
 ]

@@ -1,12 +1,12 @@
-import type { FilterField, FilterOption } from '../filter-builder'
+import type { QueryField, QueryOption } from '../filter-builder'
 
-const customers: FilterOption[] = [
+const customers: QueryOption[] = [
   { value: '123', label: 'Acme Corp' },
   { value: '456', label: 'Example Inc' },
   { value: '789', label: 'Northwind Traders' },
 ]
 
-async function loadCustomers(search?: string): Promise<FilterOption[]> {
+async function loadCustomers(search?: string): Promise<QueryOption[]> {
   await new Promise((resolve) => window.setTimeout(resolve, 450))
   const query = search?.trim().toLocaleLowerCase()
   return query
@@ -14,7 +14,7 @@ async function loadCustomers(search?: string): Promise<FilterOption[]> {
     : customers
 }
 
-export const demoFields: FilterField[] = [
+export const demoFields: QueryField[] = [
   {
     key: 'status',
     label: 'Status',

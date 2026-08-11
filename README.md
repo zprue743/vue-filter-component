@@ -22,13 +22,13 @@ npm run build
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  FilterBuilder,
+  QueryBuilder,
   createGroup,
-  type FilterField,
-  type FilterGroup,
+  type QueryField,
+  type QueryGroup,
 } from './filter-builder'
 
-const fields: FilterField[] = [
+const fields: QueryField[] = [
   { key: 'name', label: 'Customer name', type: 'string' },
   {
     key: 'status',
@@ -41,22 +41,22 @@ const fields: FilterField[] = [
   },
 ]
 
-const filter = ref<FilterGroup>(createGroup())
+const filter = ref<QueryGroup>(createGroup())
 </script>
 
 <template>
-  <FilterBuilder v-model="filter" :fields="fields" />
+  <QueryBuilder v-model="filter" :fields="fields" />
 </template>
 ```
 
-`FilterBuilder` accepts `modelValue`, `fields`, and an optional `ariaLabel`, and emits `update:modelValue`. Vue's `v-model` provides the concise form shown above. Normal attributes such as `class` and `style` are forwarded to the root element.
+`QueryBuilder` accepts `modelValue`, `fields`, and an optional `ariaLabel`, and emits `update:modelValue`. Vue's `v-model` provides the concise form shown above. Normal attributes such as `class` and `style` are forwarded to the root element.
 
 ## Filter data
 
 The output is a JSON-safe discriminated tree:
 
 ```ts
-type FilterCondition = {
+type QueryCondition = {
   id: string
   kind: 'condition'
   field: string
@@ -64,11 +64,11 @@ type FilterCondition = {
   value: string | number | boolean | null
 }
 
-type FilterGroup = {
+type QueryGroup = {
   id: string
   kind: 'group'
   combinator: 'and' | 'or'
-  children: Array<FilterCondition | FilterGroup>
+  children: Array<QueryCondition | QueryGroup>
 }
 ```
 
@@ -79,7 +79,7 @@ The exported `createCondition`, `createGroup`, `addChild`, `removeNode`, `update
 Fields are always supplied by the consumer:
 
 ```ts
-const fields: FilterField[] = [
+const fields: QueryField[] = [
   {
     key: 'revenue',
     label: 'Revenue',
@@ -97,7 +97,7 @@ String, number, date, boolean, and select fields have small default operator set
 Select fields can receive static `options`, or a consumer-owned async loader:
 
 ```ts
-const customerField: FilterField = {
+const customerField: QueryField = {
   key: 'customerId',
   label: 'Customer',
   type: 'select',
