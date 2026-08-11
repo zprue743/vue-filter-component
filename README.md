@@ -147,7 +147,7 @@ The component calls the loader initially and when the user chooses **Load values
 
 ## Styling
 
-Import `filter-builder/styles.css` for the minimal defaults, or import the component files and provide your own styles. All selectors use readable `filter-*` classes. The main neutral colors are exposed as CSS custom properties on `.filter-builder`:
+The component includes scoped SCSS styles. All selectors use readable `filter-*` classes. The main neutral colors are exposed as CSS custom properties on `.filter-builder`:
 
 ```css
 .my-filter-builder {

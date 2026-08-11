@@ -175,3 +175,90 @@ watch(
     </button>
   </div>
 </template>
+
+<style scoped lang="scss">
+.filter-condition,
+.filter-option-loader {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.filter-condition {
+  flex-wrap: wrap;
+  padding: 0.75rem;
+  border-left: 3px solid var(--filter-border);
+  background: var(--filter-muted-surface);
+}
+
+.filter-option-loader {
+  flex-wrap: wrap;
+}
+
+.filter-control {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 10rem;
+
+  > span {
+    color: var(--filter-muted-text);
+    font-size: 0.8rem;
+  }
+}
+
+.filter-value {
+  flex: 1 1 12rem;
+}
+
+.filter-select-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.filter-search-control {
+  min-width: 8rem;
+}
+
+input,
+select,
+button {
+  min-height: 2.25rem;
+  border: 1px solid var(--filter-border);
+  border-radius: 3px;
+  background: var(--filter-surface);
+  color: inherit;
+  font: inherit;
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+input,
+select {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+}
+
+button {
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 680px) {
+  .filter-condition,
+  .filter-control,
+  .filter-value,
+  .filter-select-value {
+    width: 100%;
+  }
+}
+</style>

@@ -104,3 +104,102 @@ function onCombinatorChange(event: Event) {
     </div>
   </fieldset>
 </template>
+
+<style scoped lang="scss">
+.filter-group {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--filter-border);
+  border-radius: 4px;
+  background: var(--filter-surface);
+}
+
+.filter-group-heading {
+  padding: 0 0.35rem;
+  font-weight: 600;
+}
+
+.filter-group-toolbar,
+.filter-group-actions {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.filter-group-toolbar {
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.filter-group-actions {
+  flex-wrap: wrap;
+}
+
+.filter-group-children {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  > .filter-group {
+    margin-left: 1rem;
+    background: var(--filter-muted-surface);
+  }
+}
+
+.filter-control {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 10rem;
+
+  > span {
+    color: var(--filter-muted-text);
+    font-size: 0.8rem;
+  }
+}
+
+select,
+button {
+  min-height: 2.25rem;
+  border: 1px solid var(--filter-border);
+  border-radius: 3px;
+  background: var(--filter-surface);
+  color: inherit;
+  font: inherit;
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+select {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+}
+
+button {
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+.filter-empty {
+  margin: 1rem 0 0;
+  color: var(--filter-muted-text);
+}
+
+@media (max-width: 680px) {
+  .filter-control {
+    width: 100%;
+  }
+
+  .filter-group-children > .filter-group {
+    margin-left: 0;
+  }
+}
+</style>
