@@ -6,3 +6,4 @@
 - This is a Vue 3 and TypeScript project.
 - Do not introduce additional application or UI frameworks.
 - Add dependencies only when truly necessary, and only choose open-source packages that are highly stable, mature, actively maintained, and well supported.
+- Add concise code comments for non-obvious behavior and design decisions. Document every public component, prop, emitted event, exported type, property, and helper with JSDoc that provides useful editor hover guidance; do not add comments that merely restate the code.
