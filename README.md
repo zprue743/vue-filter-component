@@ -96,7 +96,7 @@ type QueryCondition = {
   kind: 'condition'
   field: string
   operator: string
-  value: string | number | boolean | null
+  value: string | number | boolean | null | [startDate: string, endDate: string]
 }
 
 type QueryGroup = {
@@ -128,6 +128,7 @@ const fields: QueryField[] = [
 ```
 
 String, number, date, boolean, and select fields have small default operator sets. Supplying `operators` replaces the defaults for that field.
+Date fields include a `between` operator. Its condition value is an inclusive two-date tuple such as `['2026-08-01', '2026-08-31']`.
 
 Select fields can receive static `options`, or a consumer-owned async loader:
 
@@ -161,4 +162,4 @@ The component includes scoped SCSS styles. All selectors use readable `filter-*`
 
 ## Deliberate limits
 
-This foundation uses one value per condition and a small set of native controls. It does not generate SQL, validate backend semantics, cache loaded options, or include range/multi-select operators. Those behaviors can be added by a consuming application without changing the filter-tree shape.
+This foundation uses native controls and supports scalar condition values plus date ranges. A date condition using `between` stores an inclusive `[startDate, endDate]` tuple. It does not generate SQL, validate backend semantics, cache loaded options, or include multi-select operators.

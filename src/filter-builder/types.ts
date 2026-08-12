@@ -4,6 +4,12 @@ export type QueryFieldType = 'string' | 'number' | 'date' | 'boolean' | 'select'
 /** A JSON-safe value supported by a single query condition. */
 export type QueryScalar = string | number | boolean | null
 
+/** Inclusive start and end dates stored by a date condition using the `between` operator. */
+export type QueryDateRange = [startDate: string, endDate: string]
+
+/** A scalar comparison value or an inclusive date range. */
+export type QueryValue = QueryScalar | QueryDateRange
+
 /** A selectable value and its user-facing label. */
 export interface QueryOption {
   /** Value stored in the resulting condition and sent to the backend. */
@@ -41,7 +47,7 @@ export interface QueryField {
   placeholder?: string
 }
 
-/** A leaf node that compares one field with one value. */
+/** A leaf node that compares one field with a scalar value or date range. */
 export interface QueryCondition {
   /** Stable identifier used when editing this node. */
   id: string
@@ -51,8 +57,8 @@ export interface QueryCondition {
   field: string
   /** Operator identifier supported by the selected field. */
   operator: string
-  /** Comparison value. Date values use the input's `YYYY-MM-DD` string format. */
-  value: QueryScalar
+  /** Comparison value. Date values use `YYYY-MM-DD`; `between` uses `[startDate, endDate]`. */
+  value: QueryValue
 }
 
 /** A branch that combines conditions or nested groups. */

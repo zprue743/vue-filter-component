@@ -3,6 +3,7 @@ import {
   addChild,
   createCondition,
   createGroup,
+  operatorsFor,
   removeNode,
   updateCondition,
   updateGroup,
@@ -29,6 +30,20 @@ describe('filter tree helpers', () => {
   it('changes a group from AND to OR', () => {
     const root = createGroup('and', [], 'root')
     expect(updateGroup(root, root.id, { combinator: 'or' }).combinator).toBe('or')
+  })
+
+  it('includes between in the default date operators', () => {
+    const dateField: QueryField = { key: 'createdDate', label: 'Created Date', type: 'date' }
+    const condition = createCondition(
+      [dateField],
+      { operator: 'between', value: ['2026-08-01', '2026-08-31'] },
+    )
+
+    expect(operatorsFor(dateField)).toContainEqual({ value: 'between', label: 'Between' })
+    expect(condition).toMatchObject({
+      operator: 'between',
+      value: ['2026-08-01', '2026-08-31'],
+    })
   })
 
   it('adds a nested group and preserves it while editing a condition', () => {

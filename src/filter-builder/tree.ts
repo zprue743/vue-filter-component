@@ -5,7 +5,7 @@ import type {
   QueryGroup,
   QueryNode,
   QueryOperator,
-  QueryScalar,
+  QueryValue,
 } from './types'
 
 const DEFAULT_OPERATORS: Record<QueryFieldType, QueryOperator[]> = {
@@ -24,6 +24,7 @@ const DEFAULT_OPERATORS: Record<QueryFieldType, QueryOperator[]> = {
   ],
   date: [
     { value: 'eq', label: 'On' },
+    { value: 'between', label: 'Between' },
     { value: 'before', label: 'Before' },
     { value: 'after', label: 'After' },
     { value: 'gte', label: 'On or after' },
@@ -52,7 +53,7 @@ export function operatorsFor(field?: QueryField): QueryOperator[] {
 }
 
 /** Returns the initial value to use when a condition selects the given field. */
-export function defaultValueFor(field?: QueryField): QueryScalar {
+export function defaultValueFor(field?: QueryField): QueryValue {
   if (!field) return null
   if (field.type === 'boolean') return true
   if (field.type === 'number') return null

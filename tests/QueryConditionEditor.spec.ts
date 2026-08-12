@@ -47,6 +47,60 @@ describe('QueryConditionEditor', () => {
     expect(wrapper.emitted('remove')).toHaveLength(1)
   })
 
+  it('offers an inclusive range for dates and emits both date values', async () => {
+    const fields: QueryField[] = [{ key: 'createdDate', label: 'Created Date', type: 'date' }]
+    const dateCondition: QueryCondition = {
+      ...condition,
+      field: 'createdDate',
+      operator: 'eq',
+      value: '2026-08-01',
+    }
+    const wrapper = mount(QueryConditionEditor, {
+      props: { condition: dateCondition, fields },
+    })
+
+    expect(wrapper.get('[data-testid="operator-select"]').text()).toContain('Between')
+    await wrapper.get('[data-testid="operator-select"]').setValue('between')
+
+    const betweenCondition = wrapper.emitted('update:condition')?.at(-1)?.[0] as QueryCondition
+    expect(betweenCondition).toMatchObject({
+      operator: 'between',
+      value: ['2026-08-01', ''],
+    })
+
+    await wrapper.setProps({ condition: betweenCondition })
+    expect(wrapper.find('[data-testid="value-input"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="start-date-input"]').attributes('type')).toBe('date')
+    expect(wrapper.get('[data-testid="end-date-input"]').attributes('type')).toBe('date')
+
+    await wrapper.get('[data-testid="end-date-input"]').setValue('2026-08-31')
+    expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toMatchObject({
+      operator: 'between',
+      value: ['2026-08-01', '2026-08-31'],
+    })
+  })
+
+  it('uses the range start date when changing from between to a single-date operator', async () => {
+    const fields: QueryField[] = [{ key: 'createdDate', label: 'Created Date', type: 'date' }]
+    const wrapper = mount(QueryConditionEditor, {
+      props: {
+        condition: {
+          ...condition,
+          field: 'createdDate',
+          operator: 'between',
+          value: ['2026-08-01', '2026-08-31'],
+        },
+        fields,
+      },
+    })
+
+    await wrapper.get('[data-testid="operator-select"]').setValue('before')
+    expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toMatchObject({
+      operator: 'before',
+      value: '2026-08-01',
+    })
+  })
+
   it('shows an error when a dynamic option loader rejects', async () => {
     const loadOptions = vi.fn().mockRejectedValue(new Error('Unavailable'))
     const fields: QueryField[] = [

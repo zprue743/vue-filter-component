@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { defaultValueFor, operatorsFor } from './tree'
-import type { QueryCondition, QueryField, QueryOption, QueryScalar } from './types'
+import type { QueryCondition, QueryDateRange, QueryField, QueryOption, QueryScalar } from './types'
 
 defineOptions({ name: 'QueryConditionEditor' })
 
@@ -31,6 +31,13 @@ const field = computed(() => props.fields.find((item) => item.key === props.cond
 const operators = computed(() => operatorsFor(field.value))
 const options = computed(() => field.value?.options ?? loadedOptions.value)
 const isDynamicSelect = computed(() => field.value?.type === 'select' && Boolean(field.value.loadOptions))
+const isDateRange = computed(() => field.value?.type === 'date' && props.condition.operator === 'between')
+const dateRange = computed<QueryDateRange>(() =>
+  Array.isArray(props.condition.value) ? props.condition.value : [String(props.condition.value ?? ''), ''],
+)
+const scalarValue = computed(() =>
+  Array.isArray(props.condition.value) ? props.condition.value[0] : props.condition.value,
+)
 
 function update(changes: Partial<QueryCondition>) {
   emit('update:condition', { ...props.condition, ...changes })
@@ -47,7 +54,18 @@ function onFieldChange(event: Event) {
 }
 
 function onOperatorChange(event: Event) {
-  update({ operator: (event.target as HTMLSelectElement).value })
+  const operator = (event.target as HTMLSelectElement).value
+  const currentValue = props.condition.value
+
+  if (field.value?.type === 'date' && operator === 'between') {
+    update({
+      operator,
+      value: Array.isArray(currentValue) ? currentValue : [String(currentValue ?? ''), ''],
+    })
+    return
+  }
+
+  update({ operator, value: Array.isArray(currentValue) ? currentValue[0] : currentValue })
 }
 
 function onValueChange(event: Event) {
@@ -60,6 +78,12 @@ function onValueChange(event: Event) {
     value = options.value.find((option) => String(option.value) === target.value)?.value ?? target.value
   }
 
+  update({ value })
+}
+
+function onDateRangeChange(index: 0 | 1, event: Event) {
+  const value: QueryDateRange = [...dateRange.value]
+  value[index] = (event.target as HTMLInputElement).value
   update({ value })
 }
 
@@ -167,11 +191,34 @@ watch(
       </select>
     </label>
 
+    <div v-else-if="isDateRange" class="filter-value filter-date-range">
+      <label class="filter-control">
+        <span>Start date</span>
+        <input
+          type="date"
+          :value="dateRange[0]"
+          aria-label="Start date"
+          data-testid="start-date-input"
+          @input="onDateRangeChange(0, $event)"
+        />
+      </label>
+      <label class="filter-control">
+        <span>End date</span>
+        <input
+          type="date"
+          :value="dateRange[1]"
+          aria-label="End date"
+          data-testid="end-date-input"
+          @input="onDateRangeChange(1, $event)"
+        />
+      </label>
+    </div>
+
     <label v-else class="filter-control filter-value">
       <span>Value</span>
       <input
         :type="field?.type === 'date' ? 'date' : field?.type === 'number' ? 'number' : 'text'"
-        :value="condition.value ?? ''"
+        :value="scalarValue ?? ''"
         :placeholder="field?.placeholder"
         aria-label="Value"
         data-testid="value-input"
@@ -226,6 +273,16 @@ watch(
   gap: 0.75rem;
 }
 
+.filter-date-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  > .filter-control {
+    flex: 1 1 10rem;
+  }
+}
+
 .filter-search-control {
   min-width: 8rem;
 }
@@ -266,7 +323,8 @@ button {
   .filter-condition,
   .filter-control,
   .filter-value,
-  .filter-select-value {
+  .filter-select-value,
+  .filter-date-range {
     width: 100%;
   }
 }
