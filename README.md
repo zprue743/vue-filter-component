@@ -96,7 +96,9 @@ type QueryCondition = {
   kind: 'condition'
   field: string
   operator: string
-  value: string | number | boolean | null | [startDate: string, endDate: string]
+  value: string | number | boolean | null
+    | [startDate: string, endDate: string]
+    | Array<string | number | boolean>
 }
 
 type QueryGroup = {
@@ -130,6 +132,21 @@ const fields: QueryField[] = [
 String, number, date, boolean, and select fields have small default operator sets. Supplying `operators` replaces the defaults for that field.
 Date fields include a `between` operator. Its condition value is an inclusive two-date tuple such as `['2026-08-01', '2026-08-31']`.
 
+Set `multiple: true` on a select field to display selected options as removable tokens. Multi-select fields use `in` and `not_in` by default and store an array of option values:
+
+```ts
+const statusField: QueryField = {
+  key: 'status',
+  label: 'Status',
+  type: 'select',
+  multiple: true,
+  options: [
+    { value: 'active', label: 'Active' },
+    { value: 'pending', label: 'Pending' },
+  ],
+}
+```
+
 Select fields can receive static `options`, or a consumer-owned async loader:
 
 ```ts
@@ -162,4 +179,4 @@ The component includes scoped SCSS styles. All selectors use readable `query-*` 
 
 ## Deliberate limits
 
-This foundation uses native controls and supports scalar condition values plus date ranges. A date condition using `between` stores an inclusive `[startDate, endDate]` tuple. It does not generate SQL, validate backend semantics, cache loaded options, or include multi-select operators.
+This foundation uses responsive native controls and supports scalar values, date ranges, and multi-select option arrays. It does not generate SQL, validate backend semantics, or cache loaded options.

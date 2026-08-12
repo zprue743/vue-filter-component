@@ -102,6 +102,66 @@ describe('QueryConditionEditor', () => {
     })
   })
 
+  it('reactively adds and removes multi-select values as labeled tokens', async () => {
+    const fields: QueryField[] = [
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        multiple: true,
+        options: [
+          { value: 'active', label: 'Active' },
+          { value: 'pending', label: 'Pending review' },
+        ],
+      },
+    ]
+    const multiCondition: QueryCondition = {
+      ...condition,
+      field: 'status',
+      operator: 'in',
+      value: ['active'],
+    }
+    const wrapper = mount(QueryConditionEditor, {
+      props: { condition: multiCondition, fields },
+    })
+
+    expect(wrapper.get('[data-testid="operator-select"]').text()).toContain('Includes any of')
+    expect(wrapper.get('[aria-label="Selected values"]').text()).toContain('Active')
+
+    await wrapper.get('[data-testid="value-select"]').setValue('pending')
+    const withPending = wrapper.emitted('update:condition')?.at(-1)?.[0] as QueryCondition
+    expect(withPending.value).toEqual(['active', 'pending'])
+
+    await wrapper.setProps({ condition: withPending })
+    expect(wrapper.get('[aria-label="Selected values"]').text()).toContain('Pending review')
+
+    await wrapper.get('[aria-label="Remove Active"]').trigger('click')
+    expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toMatchObject({
+      value: ['pending'],
+    })
+  })
+
+  it('preserves numeric option values in a multi-select condition', async () => {
+    const fields: QueryField[] = [
+      {
+        key: 'priority',
+        label: 'Priority',
+        type: 'select',
+        multiple: true,
+        options: [{ value: 2, label: 'High' }],
+      },
+    ]
+    const wrapper = mount(QueryConditionEditor, {
+      props: {
+        condition: { ...condition, field: 'priority', operator: 'in', value: [] },
+        fields,
+      },
+    })
+
+    await wrapper.get('[data-testid="value-select"]').setValue('2')
+    expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toMatchObject({ value: [2] })
+  })
+
   it('shows an error when a dynamic option loader rejects', async () => {
     const loadOptions = vi.fn().mockRejectedValue(new Error('Unavailable'))
     const fields: QueryField[] = [

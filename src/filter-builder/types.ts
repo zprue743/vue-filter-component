@@ -4,16 +4,22 @@ export type QueryFieldType = 'string' | 'number' | 'date' | 'boolean' | 'select'
 /** A JSON-safe value supported by a single query condition. */
 export type QueryScalar = string | number | boolean | null
 
+/** A non-null scalar that can identify one selectable option. */
+export type QueryOptionValue = Exclude<QueryScalar, null>
+
 /** Inclusive start and end dates stored by a date condition using the `between` operator. */
 export type QueryDateRange = [startDate: string, endDate: string]
 
-/** A scalar comparison value or an inclusive date range. */
-export type QueryValue = QueryScalar | QueryDateRange
+/** Values stored by a select field configured with `multiple: true`. */
+export type QueryMultiValue = QueryOptionValue[]
+
+/** A scalar comparison value, inclusive date range, or set of selected option values. */
+export type QueryValue = QueryScalar | QueryDateRange | QueryMultiValue
 
 /** A selectable value and its user-facing label. */
 export interface QueryOption {
   /** Value stored in the resulting condition and sent to the backend. */
-  value: Exclude<QueryScalar, null>
+  value: QueryOptionValue
   /** Text displayed in the value selector. */
   label: string
 }
@@ -43,11 +49,13 @@ export interface QueryField {
   options?: QueryOption[]
   /** Consumer-owned async option source for a select field. */
   loadOptions?: QueryOptionLoader
+  /** Allows a select field to store multiple option values and display them as removable tokens. */
+  multiple?: boolean
   /** Optional hint displayed by the value control. */
   placeholder?: string
 }
 
-/** A leaf node that compares one field with a scalar value or date range. */
+/** A leaf node that compares one field with a scalar value, date range, or option set. */
 export interface QueryCondition {
   /** Stable identifier used when editing this node. */
   id: string
@@ -57,7 +65,7 @@ export interface QueryCondition {
   field: string
   /** Operator identifier supported by the selected field. */
   operator: string
-  /** Comparison value. Date values use `YYYY-MM-DD`; `between` uses `[startDate, endDate]`. */
+  /** Comparison value. Multi-select fields store an array; date `between` stores two dates. */
   value: QueryValue
 }
 

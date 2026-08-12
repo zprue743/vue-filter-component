@@ -19,6 +19,7 @@ export const demoFields: QueryField[] = [
     key: 'status',
     label: 'Status',
     type: 'select',
+    multiple: true,
     options: [
       { value: 'active', label: 'Active' },
       { value: 'inactive', label: 'Inactive' },

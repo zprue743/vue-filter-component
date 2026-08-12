@@ -39,6 +39,11 @@ const DEFAULT_OPERATORS: Record<QueryFieldType, QueryOperator[]> = {
   ],
 }
 
+const MULTI_SELECT_OPERATORS: QueryOperator[] = [
+  { value: 'in', label: 'Includes any of' },
+  { value: 'not_in', label: 'Excludes all of' },
+]
+
 let fallbackId = 0
 
 /** Creates a unique client-side ID for a condition or group. */
@@ -49,7 +54,11 @@ export function createFilterId(prefix: 'condition' | 'group'): string {
 
 /** Returns a field's custom operators or the defaults for its type. */
 export function operatorsFor(field?: QueryField): QueryOperator[] {
-  return field ? (field.operators ?? DEFAULT_OPERATORS[field.type]) : []
+  if (!field) return []
+  if (field.operators) return field.operators
+  return field.type === 'select' && field.multiple
+    ? MULTI_SELECT_OPERATORS
+    : DEFAULT_OPERATORS[field.type]
 }
 
 /** Returns the initial value to use when a condition selects the given field. */
@@ -57,6 +66,7 @@ export function defaultValueFor(field?: QueryField): QueryValue {
   if (!field) return null
   if (field.type === 'boolean') return true
   if (field.type === 'number') return null
+  if (field.type === 'select' && field.multiple) return []
   return ''
 }
 

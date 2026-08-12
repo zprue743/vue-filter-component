@@ -9,8 +9,8 @@ export const initialFilter: QueryGroup = {
       id: 'status-condition',
       kind: 'condition',
       field: 'status',
-      operator: 'eq',
-      value: 'active',
+      operator: 'in',
+      value: ['active'],
     },
     {
       id: 'created-condition',

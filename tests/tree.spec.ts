@@ -46,6 +46,27 @@ describe('filter tree helpers', () => {
     })
   })
 
+  it('creates multi-select conditions with array values and set operators', () => {
+    const field: QueryField = {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      multiple: true,
+    }
+
+    expect(operatorsFor(field)).toEqual([
+      { value: 'in', label: 'Includes any of' },
+      { value: 'not_in', label: 'Excludes all of' },
+    ])
+    expect(createCondition([field], { id: 'status-1' })).toEqual({
+      id: 'status-1',
+      kind: 'condition',
+      field: 'status',
+      operator: 'in',
+      value: [],
+    })
+  })
+
   it('adds a nested group and preserves it while editing a condition', () => {
     const condition = createCondition(fields, {
       id: 'condition-1',

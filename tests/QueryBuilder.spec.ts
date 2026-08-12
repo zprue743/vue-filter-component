@@ -68,6 +68,33 @@ describe('QueryBuilder', () => {
     expect(updated.children[0]).toMatchObject({ value: 2 })
   })
 
+  it('emits reactive multi-select updates through the public model', async () => {
+    const fields: QueryField[] = [
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        multiple: true,
+        options: [
+          { value: 'active', label: 'Active' },
+          { value: 'pending', label: 'Pending' },
+        ],
+      },
+    ]
+    const query = createGroup('and', [
+      { id: 'status-1', kind: 'condition', field: 'status', operator: 'in', value: ['active'] },
+    ])
+    const wrapper = mount(QueryBuilder, { props: { modelValue: query, fields } })
+
+    await wrapper.get('[data-testid="value-select"]').setValue('pending')
+
+    const updated = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as QueryGroup
+    expect(updated.children[0]).toMatchObject({
+      operator: 'in',
+      value: ['active', 'pending'],
+    })
+  })
+
   it('loads dynamic values supplied by a field', async () => {
     const loadOptions = vi.fn().mockResolvedValue([
       { value: '123', label: 'Acme Corp' },

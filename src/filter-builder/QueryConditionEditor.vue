@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { defaultValueFor, operatorsFor } from './tree'
-import type { QueryCondition, QueryDateRange, QueryField, QueryOption, QueryScalar } from './types'
+import type {
+  QueryCondition,
+  QueryDateRange,
+  QueryField,
+  QueryMultiValue,
+  QueryOption,
+  QueryOptionValue,
+  QueryScalar,
+} from './types'
 
 defineOptions({ name: 'QueryConditionEditor' })
 
@@ -31,12 +39,25 @@ const field = computed(() => props.fields.find((item) => item.key === props.cond
 const operators = computed(() => operatorsFor(field.value))
 const options = computed(() => field.value?.options ?? loadedOptions.value)
 const isDynamicSelect = computed(() => field.value?.type === 'select' && Boolean(field.value.loadOptions))
+const isMultiSelect = computed(() => field.value?.type === 'select' && field.value.multiple === true)
 const isDateRange = computed(() => field.value?.type === 'date' && props.condition.operator === 'between')
-const dateRange = computed<QueryDateRange>(() =>
-  Array.isArray(props.condition.value) ? props.condition.value : [String(props.condition.value ?? ''), ''],
-)
+const dateRange = computed<QueryDateRange>(() => {
+  const value = props.condition.value
+  return Array.isArray(value)
+    ? [String(value[0] ?? ''), String(value[1] ?? '')]
+    : [String(value ?? ''), '']
+})
 const scalarValue = computed(() =>
   Array.isArray(props.condition.value) ? props.condition.value[0] : props.condition.value,
+)
+const selectedValues = computed<QueryMultiValue>(() =>
+  isMultiSelect.value && Array.isArray(props.condition.value) ? props.condition.value : [],
+)
+const selectedOptions = computed(() =>
+  selectedValues.value.map((value) => ({
+    value,
+    label: options.value.find((option) => Object.is(option.value, value))?.label ?? String(value),
+  })),
 )
 
 function update(changes: Partial<QueryCondition>) {
@@ -60,8 +81,15 @@ function onOperatorChange(event: Event) {
   if (field.value?.type === 'date' && operator === 'between') {
     update({
       operator,
-      value: Array.isArray(currentValue) ? currentValue : [String(currentValue ?? ''), ''],
+      value: Array.isArray(currentValue)
+        ? [String(currentValue[0] ?? ''), String(currentValue[1] ?? '')]
+        : [String(currentValue ?? ''), ''],
     })
+    return
+  }
+
+  if (isMultiSelect.value) {
+    update({ operator, value: Array.isArray(currentValue) ? currentValue : [] })
     return
   }
 
@@ -70,6 +98,17 @@ function onOperatorChange(event: Event) {
 
 function onValueChange(event: Event) {
   const target = event.target as HTMLInputElement | HTMLSelectElement
+
+  if (isMultiSelect.value) {
+    const option = options.value.find((item) => String(item.value) === target.value)
+    if (option && !selectedValues.value.some((value) => Object.is(value, option.value))) {
+      update({ value: [...selectedValues.value, option.value] })
+    }
+    // The picker is an add control; selected values are represented by the tokens below it.
+    target.value = ''
+    return
+  }
+
   let value: QueryScalar = target.value
 
   if (field.value?.type === 'number') value = target.value === '' ? null : Number(target.value)
@@ -79,6 +118,12 @@ function onValueChange(event: Event) {
   }
 
   update({ value })
+}
+
+function removeSelectedValue(valueToRemove: QueryOptionValue) {
+  update({
+    value: selectedValues.value.filter((value) => !Object.is(value, valueToRemove)),
+  })
 }
 
 function onDateRangeChange(index: 0 | 1, event: Event) {
@@ -152,18 +197,47 @@ watch(
       <label class="query-control">
         <span>Value</span>
         <select
-          :value="condition.value ?? ''"
+          :value="isMultiSelect ? '' : scalarValue ?? ''"
           aria-label="Value"
           data-testid="value-select"
           :disabled="optionState === 'loading'"
           @change="onValueChange"
         >
           <option value="">{{ field.placeholder ?? 'Select a value' }}</option>
-          <option v-for="option in options" :key="String(option.value)" :value="option.value">
+          <option
+            v-for="option in options"
+            :key="`${typeof option.value}:${String(option.value)}`"
+            :value="option.value"
+            :disabled="selectedValues.some((value) => Object.is(value, option.value))"
+          >
             {{ option.label }}
           </option>
         </select>
       </label>
+
+      <div
+        v-if="isMultiSelect && selectedOptions.length > 0"
+        class="query-tokens"
+        role="list"
+        aria-label="Selected values"
+      >
+        <span
+          v-for="option in selectedOptions"
+          :key="`${typeof option.value}:${String(option.value)}`"
+          class="query-token"
+          role="listitem"
+        >
+          <span>{{ option.label }}</span>
+          <button
+            type="button"
+            class="query-token-remove"
+            :aria-label="`Remove ${option.label}`"
+            @click="removeSelectedValue(option.value)"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </span>
+      </div>
 
       <div v-if="isDynamicSelect" class="query-option-loader">
         <label class="query-control query-search-control">
@@ -273,6 +347,38 @@ watch(
   gap: 0.75rem;
 }
 
+.query-tokens {
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.query-token {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.25rem 0.2rem 0.55rem;
+  border: 1px solid var(--query-border);
+  border-radius: 999px;
+  background: var(--query-surface);
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.query-token-remove {
+  min-height: 1.5rem;
+  padding: 0 0.4rem;
+  border: 0;
+  border-radius: 999px;
+}
+
 .query-date-range {
   display: flex;
   flex-wrap: wrap;
@@ -324,7 +430,13 @@ button {
   .query-control,
   .query-value,
   .query-select-value,
-  .query-date-range {
+  .query-date-range,
+  .query-option-loader {
+    width: 100%;
+  }
+
+  .query-option-loader > button,
+  .query-remove {
     width: 100%;
   }
 }
