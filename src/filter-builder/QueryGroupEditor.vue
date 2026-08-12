@@ -61,11 +61,11 @@ function onCombinatorChange(event: Event) {
 </script>
 
 <template>
-  <fieldset class="filter-group" :data-node-id="group.id">
-    <legend class="filter-group-heading">{{ root ? 'Filter criteria' : 'Nested group' }}</legend>
+  <fieldset class="query-group" :data-node-id="group.id">
+    <legend class="query-group-heading">{{ root ? 'Filter criteria' : 'Nested group' }}</legend>
 
-    <div class="filter-group-toolbar">
-      <label class="filter-control filter-combinator">
+    <div class="query-group-toolbar">
+      <label class="query-control query-combinator">
         <span>Match</span>
         <select
           :value="group.combinator"
@@ -78,7 +78,7 @@ function onCombinatorChange(event: Event) {
         </select>
       </label>
 
-      <div class="filter-group-actions">
+      <div class="query-group-actions">
         <button type="button" :disabled="fields.length === 0" @click="addCondition">
           Add condition
         </button>
@@ -89,11 +89,11 @@ function onCombinatorChange(event: Event) {
       </div>
     </div>
 
-    <p v-if="group.children.length === 0" class="filter-empty" role="status">
+    <p v-if="group.children.length === 0" class="query-empty" role="status">
       No criteria yet. Add a condition or group to begin.
     </p>
 
-    <div v-else class="filter-group-children">
+    <div v-else class="query-group-children">
       <template v-for="(child, index) in group.children" :key="child.id">
         <QueryGroupEditor
           v-if="child.kind === 'group'"
@@ -115,54 +115,54 @@ function onCombinatorChange(event: Event) {
 </template>
 
 <style scoped lang="scss">
-.filter-group {
+.query-group {
   min-width: 0;
   margin: 0;
   padding: 1rem;
-  border: 1px solid var(--filter-border);
+  border: 1px solid var(--query-border);
   border-radius: 4px;
-  background: var(--filter-surface);
+  background: var(--query-surface);
 }
 
-.filter-group-heading {
+.query-group-heading {
   padding: 0 0.35rem;
   font-weight: 600;
 }
 
-.filter-group-toolbar,
-.filter-group-actions {
+.query-group-toolbar,
+.query-group-actions {
   display: flex;
   align-items: end;
   gap: 0.75rem;
 }
 
-.filter-group-toolbar {
+.query-group-toolbar {
   flex-wrap: wrap;
   justify-content: space-between;
 }
 
-.filter-group-actions {
+.query-group-actions {
   flex-wrap: wrap;
 }
 
-.filter-group-children {
+.query-group-children {
   display: grid;
   gap: 0.75rem;
   margin-top: 1rem;
 
-  > .filter-group {
+  > .query-group {
     margin-left: 1rem;
-    background: var(--filter-muted-surface);
+    background: var(--query-muted-surface);
   }
 }
 
-.filter-control {
+.query-control {
   display: grid;
   gap: 0.25rem;
   min-width: 10rem;
 
   > span {
-    color: var(--filter-muted-text);
+    color: var(--query-muted-text);
     font-size: 0.8rem;
   }
 }
@@ -170,9 +170,9 @@ function onCombinatorChange(event: Event) {
 select,
 button {
   min-height: 2.25rem;
-  border: 1px solid var(--filter-border);
+  border: 1px solid var(--query-border);
   border-radius: 3px;
-  background: var(--filter-surface);
+  background: var(--query-surface);
   color: inherit;
   font: inherit;
 
@@ -197,17 +197,17 @@ button {
   }
 }
 
-.filter-empty {
+.query-empty {
   margin: 1rem 0 0;
-  color: var(--filter-muted-text);
+  color: var(--query-muted-text);
 }
 
 @media (max-width: 680px) {
-  .filter-control {
+  .query-control {
     width: 100%;
   }
 
-  .filter-group-children > .filter-group {
+  .query-group-children > .query-group {
     margin-left: 0;
   }
 }

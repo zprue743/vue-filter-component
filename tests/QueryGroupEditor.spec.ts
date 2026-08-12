@@ -14,6 +14,7 @@ describe('QueryGroupEditor', () => {
     )
     const wrapper = mount(QueryGroupEditor, { props: { group, fields, root: true } })
 
+    expect(wrapper.classes()).toContain('query-group')
     await wrapper.get('[data-testid="combinator-select"]').setValue('or')
     expect(wrapper.emitted('update:group')?.at(-1)?.[0]).toMatchObject({ combinator: 'or' })
 

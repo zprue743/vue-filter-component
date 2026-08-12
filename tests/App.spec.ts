@@ -7,7 +7,7 @@ describe('App', () => {
     const wrapper = mount(App)
 
     expect(wrapper.get('h1').text()).toBe('Vue filter builder')
-    expect(wrapper.get('[aria-label="Query builder"]').classes()).toContain('filter-builder')
+    expect(wrapper.get('[aria-label="Query builder"]').classes()).toContain('query-builder')
 
     const initialQuery = JSON.parse(wrapper.get('.json-preview pre').text())
     expect(initialQuery).toMatchObject({ id: 'root', kind: 'group', combinator: 'and' })

@@ -148,15 +148,15 @@ The component calls the loader initially and when the user chooses **Load values
 
 ## Styling
 
-The component includes scoped SCSS styles. All selectors use readable `filter-*` classes. The main neutral colors are exposed as CSS custom properties on `.filter-builder`:
+The component includes scoped SCSS styles. All selectors use readable `query-*` classes. The main neutral colors are exposed as CSS custom properties on `.query-builder`:
 
 ```css
-.my-filter-builder {
-  --filter-border: #888;
-  --filter-surface: #fff;
-  --filter-muted-surface: #f7f7f7;
-  --filter-text: #111;
-  --filter-muted-text: #555;
+.my-query-builder {
+  --query-border: #888;
+  --query-surface: #fff;
+  --query-muted-surface: #f7f7f7;
+  --query-text: #111;
+  --query-muted-text: #555;
 }
 ```
 

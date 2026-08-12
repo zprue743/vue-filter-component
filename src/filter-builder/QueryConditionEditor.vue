@@ -116,8 +116,8 @@ watch(
 </script>
 
 <template>
-  <div class="filter-condition" :data-node-id="condition.id">
-    <label class="filter-control">
+  <div class="query-condition" :data-node-id="condition.id">
+    <label class="query-control">
       <span>Field</span>
       <select
         :value="condition.field"
@@ -132,7 +132,7 @@ watch(
       </select>
     </label>
 
-    <label class="filter-control">
+    <label class="query-control">
       <span>Operator</span>
       <select
         :value="condition.operator"
@@ -148,8 +148,8 @@ watch(
       </select>
     </label>
 
-    <div v-if="field?.type === 'select'" class="filter-value filter-select-value">
-      <label class="filter-control">
+    <div v-if="field?.type === 'select'" class="query-value query-select-value">
+      <label class="query-control">
         <span>Value</span>
         <select
           :value="condition.value ?? ''"
@@ -165,8 +165,8 @@ watch(
         </select>
       </label>
 
-      <div v-if="isDynamicSelect" class="filter-option-loader">
-        <label class="filter-control filter-search-control">
+      <div v-if="isDynamicSelect" class="query-option-loader">
+        <label class="query-control query-search-control">
           <span>Search values</span>
           <input v-model="search" type="search" aria-label="Search values" />
         </label>
@@ -178,7 +178,7 @@ watch(
       </div>
     </div>
 
-    <label v-else-if="field?.type === 'boolean'" class="filter-control filter-value">
+    <label v-else-if="field?.type === 'boolean'" class="query-control query-value">
       <span>Value</span>
       <select
         :value="String(condition.value)"
@@ -191,8 +191,8 @@ watch(
       </select>
     </label>
 
-    <div v-else-if="isDateRange" class="filter-value filter-date-range">
-      <label class="filter-control">
+    <div v-else-if="isDateRange" class="query-value query-date-range">
+      <label class="query-control">
         <span>Start date</span>
         <input
           type="date"
@@ -202,7 +202,7 @@ watch(
           @input="onDateRangeChange(0, $event)"
         />
       </label>
-      <label class="filter-control">
+      <label class="query-control">
         <span>End date</span>
         <input
           type="date"
@@ -214,7 +214,7 @@ watch(
       </label>
     </div>
 
-    <label v-else class="filter-control filter-value">
+    <label v-else class="query-control query-value">
       <span>Value</span>
       <input
         :type="field?.type === 'date' ? 'date' : field?.type === 'number' ? 'number' : 'text'"
@@ -226,64 +226,64 @@ watch(
       />
     </label>
 
-    <button type="button" class="filter-remove" aria-label="Remove condition" @click="emit('remove')">
+    <button type="button" class="query-remove" aria-label="Remove condition" @click="emit('remove')">
       Remove
     </button>
   </div>
 </template>
 
 <style scoped lang="scss">
-.filter-condition,
-.filter-option-loader {
+.query-condition,
+.query-option-loader {
   display: flex;
   align-items: end;
   gap: 0.75rem;
 }
 
-.filter-condition {
+.query-condition {
   flex-wrap: wrap;
   padding: 0.75rem;
-  border-left: 3px solid var(--filter-border);
-  background: var(--filter-muted-surface);
+  border-left: 3px solid var(--query-border);
+  background: var(--query-muted-surface);
 }
 
-.filter-option-loader {
+.query-option-loader {
   flex-wrap: wrap;
 }
 
-.filter-control {
+.query-control {
   display: grid;
   gap: 0.25rem;
   min-width: 10rem;
 
   > span {
-    color: var(--filter-muted-text);
+    color: var(--query-muted-text);
     font-size: 0.8rem;
   }
 }
 
-.filter-value {
+.query-value {
   flex: 1 1 12rem;
 }
 
-.filter-select-value {
+.query-select-value {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
   gap: 0.75rem;
 }
 
-.filter-date-range {
+.query-date-range {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 
-  > .filter-control {
+  > .query-control {
     flex: 1 1 10rem;
   }
 }
 
-.filter-search-control {
+.query-search-control {
   min-width: 8rem;
 }
 
@@ -291,9 +291,9 @@ input,
 select,
 button {
   min-height: 2.25rem;
-  border: 1px solid var(--filter-border);
+  border: 1px solid var(--query-border);
   border-radius: 3px;
-  background: var(--filter-surface);
+  background: var(--query-surface);
   color: inherit;
   font: inherit;
 
@@ -320,11 +320,11 @@ button {
 }
 
 @media (max-width: 680px) {
-  .filter-condition,
-  .filter-control,
-  .filter-value,
-  .filter-select-value,
-  .filter-date-range {
+  .query-condition,
+  .query-control,
+  .query-value,
+  .query-select-value,
+  .query-date-range {
     width: 100%;
   }
 }

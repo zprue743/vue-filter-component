@@ -28,7 +28,7 @@ const emit = defineEmits<QueryBuilderEmits>()
 </script>
 
 <template>
-  <section class="filter-builder" :aria-label="ariaLabel" v-bind="$attrs">
+  <section class="query-builder" :aria-label="ariaLabel" v-bind="$attrs">
     <QueryGroupEditor
       :group="modelValue"
       :fields="fields"
@@ -39,13 +39,13 @@ const emit = defineEmits<QueryBuilderEmits>()
 </template>
 
 <style scoped lang="scss">
-.filter-builder {
-  --filter-border: #b8b8b8;
-  --filter-surface: #fff;
-  --filter-muted-surface: #f5f5f5;
-  --filter-text: #222;
-  --filter-muted-text: #666;
-  color: var(--filter-text);
+.query-builder {
+  --query-border: #b8b8b8;
+  --query-surface: #fff;
+  --query-muted-surface: #f5f5f5;
+  --query-text: #222;
+  --query-muted-text: #666;
+  color: var(--query-text);
   font: 14px/1.4 system-ui, sans-serif;
 
   &,

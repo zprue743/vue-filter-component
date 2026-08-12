@@ -19,6 +19,7 @@ describe('QueryConditionEditor', () => {
     ]
     const wrapper = mount(QueryConditionEditor, { props: { condition, fields } })
 
+    expect(wrapper.classes()).toContain('query-condition')
     await wrapper.get('[data-testid="field-select"]').setValue('revenue')
 
     expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toEqual({
