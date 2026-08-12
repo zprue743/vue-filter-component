@@ -122,6 +122,7 @@ describe('QueryConditionEditor', () => {
       value: ['active'],
     }
     const wrapper = mount(QueryConditionEditor, {
+      attachTo: document.body,
       props: { condition: multiCondition, fields },
     })
 
@@ -129,6 +130,9 @@ describe('QueryConditionEditor', () => {
     expect(wrapper.get('[aria-label="Selected values"]').text()).toContain('Active')
 
     await wrapper.get('[data-testid="multi-select-trigger"]').trigger('click')
+    expect(wrapper.findAll('button').some((button) => button.text() === 'Done')).toBe(false)
+    await wrapper.get('[aria-label="Search values"]').setValue('pending')
+    expect(wrapper.findAll('[role="option"]')).toHaveLength(1)
     const pendingOption = wrapper.findAll('[role="option"]').find((option) =>
       option.text().includes('Pending review'),
     )
@@ -147,9 +151,13 @@ describe('QueryConditionEditor', () => {
       value: ['pending'],
     })
 
-    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    wrapper.get('.query-multi-select').element.dispatchEvent(
+      new Event('pointerdown', { bubbles: true }),
+    )
     await wrapper.vm.$nextTick()
     expect(wrapper.find('[role="listbox"]').exists()).toBe(false)
+
+    wrapper.unmount()
   })
 
   it('preserves numeric option values in a multi-select condition', async () => {

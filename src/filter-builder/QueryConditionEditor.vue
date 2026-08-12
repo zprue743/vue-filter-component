@@ -35,8 +35,11 @@ const search = ref('')
 const loadedOptions = ref<QueryOption[]>([])
 const optionState = ref<'idle' | 'loading' | 'loaded' | 'empty' | 'error'>('idle')
 const isMultiSelectOpen = ref(false)
+const multiSelectSearch = ref('')
 const multiSelectRoot = ref<HTMLElement>()
 const multiSelectTrigger = ref<HTMLButtonElement>()
+const multiSelectPopover = ref<HTMLElement>()
+const multiSelectSearchInput = ref<HTMLInputElement>()
 
 const field = computed(() => props.fields.find((item) => item.key === props.condition.field))
 const operators = computed(() => operatorsFor(field.value))
@@ -62,6 +65,13 @@ const selectedOptions = computed(() =>
     label: options.value.find((option) => Object.is(option.value, value))?.label ?? String(value),
   })),
 )
+const filteredMultiSelectOptions = computed(() => {
+  const query = multiSelectSearch.value.trim().toLocaleLowerCase()
+  if (!query) return options.value
+  return options.value.filter((option) =>
+    `${option.label} ${String(option.value)}`.toLocaleLowerCase().includes(query),
+  )
+})
 const multiSelectListboxId = computed(() => `query-multi-select-${props.condition.id}`)
 
 function update(changes: Partial<QueryCondition>) {
@@ -141,10 +151,12 @@ function focusMultiSelectOption(index: number) {
 function openMultiSelect(focusIndex?: number) {
   isMultiSelectOpen.value = true
   if (focusIndex !== undefined) focusMultiSelectOption(focusIndex)
+  else void nextTick(() => multiSelectSearchInput.value?.focus())
 }
 
 function closeMultiSelect(restoreFocus = false) {
   isMultiSelectOpen.value = false
+  multiSelectSearch.value = ''
   if (restoreFocus) void nextTick(() => multiSelectTrigger.value?.focus())
 }
 
@@ -156,7 +168,7 @@ function toggleMultiSelect() {
 function onMultiSelectTriggerKeydown(event: KeyboardEvent) {
   if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
     event.preventDefault()
-    const lastIndex = Math.max(options.value.length - 1, 0)
+    const lastIndex = Math.max(filteredMultiSelectOptions.value.length - 1, 0)
     openMultiSelect(event.key === 'ArrowDown' ? 0 : lastIndex)
   } else if (event.key === 'Escape' && isMultiSelectOpen.value) {
     event.preventDefault()
@@ -165,7 +177,7 @@ function onMultiSelectTriggerKeydown(event: KeyboardEvent) {
 }
 
 function onMultiSelectOptionKeydown(event: KeyboardEvent, index: number) {
-  const lastIndex = options.value.length - 1
+  const lastIndex = filteredMultiSelectOptions.value.length - 1
   let nextIndex: number | undefined
 
   if (event.key === 'ArrowDown') nextIndex = index === lastIndex ? 0 : index + 1
@@ -182,8 +194,26 @@ function onMultiSelectOptionKeydown(event: KeyboardEvent, index: number) {
   }
 }
 
+function onMultiSelectSearchKeydown(event: KeyboardEvent) {
+  if (event.key === 'ArrowDown' && filteredMultiSelectOptions.value.length > 0) {
+    event.preventDefault()
+    focusMultiSelectOption(0)
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    closeMultiSelect(true)
+  }
+}
+
 function closeMultiSelectFromOutside(event: Event) {
-  if (!multiSelectRoot.value?.contains(event.target as Node)) closeMultiSelect()
+  const target = event.target as Node
+  const targetElement = target instanceof Element ? target : target.parentElement
+  const clickedToken = targetElement?.closest('.query-token')
+  const isInsideInteractiveArea =
+    multiSelectTrigger.value?.contains(target) ||
+    multiSelectPopover.value?.contains(target) ||
+    (clickedToken && multiSelectRoot.value?.contains(clickedToken))
+
+  if (!isInsideInteractiveArea) closeMultiSelect()
 }
 
 function onDateRangeChange(index: 0 | 1, event: Event) {
@@ -215,6 +245,7 @@ watch(
     loadedOptions.value = []
     optionState.value = 'idle'
     isMultiSelectOpen.value = false
+    multiSelectSearch.value = ''
     if (field.value?.loadOptions) void loadDynamicOptions()
   },
   { immediate: true },
@@ -289,7 +320,22 @@ onBeforeUnmount(() => {
           <span class="query-multi-select-chevron" aria-hidden="true">⌄</span>
         </button>
 
-        <div v-if="isMultiSelectOpen" class="query-multi-select-popover">
+        <div
+          v-if="isMultiSelectOpen"
+          ref="multiSelectPopover"
+          class="query-multi-select-popover"
+        >
+          <label class="query-multi-select-search">
+            <span class="query-visually-hidden">Search values</span>
+            <input
+              ref="multiSelectSearchInput"
+              v-model="multiSelectSearch"
+              type="search"
+              placeholder="Search values"
+              aria-label="Search values"
+              @keydown="onMultiSelectSearchKeydown"
+            />
+          </label>
           <div
             :id="multiSelectListboxId"
             class="query-multi-select-listbox"
@@ -298,7 +344,7 @@ onBeforeUnmount(() => {
             aria-multiselectable="true"
           >
             <button
-              v-for="(option, index) in options"
+              v-for="(option, index) in filteredMultiSelectOptions"
               :key="`${typeof option.value}:${String(option.value)}`"
               type="button"
               class="query-multi-select-option"
@@ -312,10 +358,9 @@ onBeforeUnmount(() => {
               </span>
               <span>{{ option.label }}</span>
             </button>
-            <p v-if="options.length === 0" class="query-option-empty">No values available.</p>
-          </div>
-          <div class="query-multi-select-footer">
-            <button type="button" @click="closeMultiSelect(true)">Done</button>
+            <p v-if="filteredMultiSelectOptions.length === 0" class="query-option-empty">
+              No matching values.
+            </p>
           </div>
         </div>
 
@@ -524,6 +569,22 @@ onBeforeUnmount(() => {
   padding: 0.25rem;
 }
 
+.query-multi-select-search {
+  display: block;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--query-border);
+}
+
+.query-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .query-multi-select-option {
   display: flex;
   width: 100%;
@@ -555,13 +616,6 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 0.6rem;
   color: var(--query-muted-text);
-}
-
-.query-multi-select-footer {
-  display: flex;
-  justify-content: end;
-  padding: 0.4rem;
-  border-top: 1px solid var(--query-border);
 }
 
 .query-tokens {
