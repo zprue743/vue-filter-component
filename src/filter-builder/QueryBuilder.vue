@@ -2,7 +2,7 @@
 import QueryGroupEditor from './QueryGroupEditor.vue'
 import type { QueryField, QueryGroup } from './types'
 
-defineOptions({ name: 'QueryBuilder', inheritAttrs: false })
+defineOptions({ name: 'QueryBuilder' })
 
 /** Props accepted by the public query-builder component. */
 interface QueryBuilderProps {
@@ -30,7 +30,7 @@ const emit = defineEmits<QueryBuilderEmits>()
 </script>
 
 <template>
-  <section class="query-builder" :aria-label="ariaLabel" v-bind="$attrs">
+  <section class="query-builder" :aria-label="ariaLabel">
     <QueryGroupEditor
       :group="modelValue"
       :fields="fields"

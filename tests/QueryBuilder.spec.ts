@@ -27,6 +27,17 @@ describe('QueryBuilder', () => {
     expect(wrapper.emitted('update:modelValue')).toHaveLength(1)
   })
 
+  it('forwards ordinary attributes to its root element', () => {
+    const wrapper = mount(QueryBuilder, {
+      props: { modelValue: createGroup(), fields: [] },
+      attrs: { class: 'report-query', style: 'max-width: 40rem' },
+    })
+
+    expect(wrapper.classes()).toContain('query-builder')
+    expect(wrapper.classes()).toContain('report-query')
+    expect(wrapper.attributes('style')).toContain('max-width: 40rem')
+  })
+
   it('uses externally supplied static values', () => {
     const fields: QueryField[] = [
       {
