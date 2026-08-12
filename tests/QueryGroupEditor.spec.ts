@@ -65,4 +65,18 @@ describe('QueryGroupEditor', () => {
     })
     expect(root.find('[aria-label="Remove group"]').exists()).toBe(false)
   })
+
+  it('disables adding a group at the configured depth limit', () => {
+    const wrapper = mount(QueryGroupEditor, {
+      props: {
+        group: createGroup('and', [], 'nested'),
+        fields,
+        depth: 2,
+        maxNestedGroupDepth: 2,
+      },
+    })
+
+    const addGroup = wrapper.findAll('button').find((button) => button.text() === 'Add group')
+    expect(addGroup?.attributes('disabled')).toBeDefined()
+  })
 })

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { createCondition, createGroup } from './tree'
 import QueryConditionEditor from './QueryConditionEditor.vue'
 import type { QueryCondition, QueryField, QueryGroup } from './types'
@@ -13,6 +14,10 @@ interface QueryGroupEditorProps {
   fields: QueryField[]
   /** Marks the top-level group, which cannot be removed. */
   root?: boolean
+  /** Zero-based nesting depth, where the root group is zero. */
+  depth?: number
+  /** Maximum number of group levels allowed beneath the root. */
+  maxNestedGroupDepth?: number
 }
 
 interface QueryGroupEditorEmits {
@@ -22,8 +27,11 @@ interface QueryGroupEditorEmits {
   remove: []
 }
 
-const props = defineProps<QueryGroupEditorProps>()
+const props = withDefaults(defineProps<QueryGroupEditorProps>(), { depth: 0 })
 const emit = defineEmits<QueryGroupEditorEmits>()
+const canAddGroup = computed(
+  () => props.maxNestedGroupDepth === undefined || props.depth < props.maxNestedGroupDepth,
+)
 
 function updateChild(index: number, child: QueryCondition | QueryGroup) {
   const children = [...props.group.children]
@@ -46,6 +54,7 @@ function addCondition() {
 }
 
 function addGroup() {
+  if (!canAddGroup.value) return
   emit('update:group', {
     ...props.group,
     children: [...props.group.children, createGroup()],
@@ -82,7 +91,14 @@ function onCombinatorChange(event: Event) {
         <button type="button" :disabled="fields.length === 0" @click="addCondition">
           Add condition
         </button>
-        <button type="button" @click="addGroup">Add group</button>
+        <button
+          type="button"
+          :disabled="!canAddGroup"
+          :title="canAddGroup ? undefined : 'Maximum nested group depth reached'"
+          @click="addGroup"
+        >
+          Add group
+        </button>
         <button v-if="!root" type="button" aria-label="Remove group" @click="emit('remove')">
           Remove group
         </button>
@@ -99,6 +115,8 @@ function onCombinatorChange(event: Event) {
           v-if="child.kind === 'group'"
           :group="child"
           :fields="fields"
+          :depth="depth + 1"
+          :max-nested-group-depth="maxNestedGroupDepth"
           @update:group="updateChild(index, $event)"
           @remove="removeChild(index)"
         />

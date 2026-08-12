@@ -10,6 +10,8 @@ interface QueryBuilderProps {
   modelValue: QueryGroup
   /** Fields, operators, and selectable values available to the user. */
   fields: QueryField[]
+  /** Maximum number of nested group levels beneath the root. Omit for no limit. */
+  maxNestedGroupDepth?: number
   /** Accessible name for the root section. Use `aria-label` in templates. */
   ariaLabel?: string
 }
@@ -32,6 +34,8 @@ const emit = defineEmits<QueryBuilderEmits>()
     <QueryGroupEditor
       :group="modelValue"
       :fields="fields"
+      :max-nested-group-depth="maxNestedGroupDepth"
+      :depth="0"
       root
       @update:group="emit('update:modelValue', $event)"
     />

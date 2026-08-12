@@ -164,4 +164,29 @@ describe('QueryBuilder', () => {
     expect(removed.children).toHaveLength(1)
     expect(removed.children[0]).toMatchObject({ kind: 'group' })
   })
+
+  it('limits nested groups from the root configuration', async () => {
+    const fields: QueryField[] = [{ key: 'name', label: 'Name', type: 'string' }]
+    const wrapper = mount(QueryBuilder, {
+      props: {
+        modelValue: createGroup('and', [], 'root'),
+        fields,
+        maxNestedGroupDepth: 1,
+      },
+    })
+
+    const rootAddGroup = wrapper.findAll('button').find((button) => button.text() === 'Add group')
+    expect(rootAddGroup?.attributes('disabled')).toBeUndefined()
+    await rootAddGroup?.trigger('click')
+
+    const withNestedGroup = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as QueryGroup
+    await wrapper.setProps({ modelValue: withNestedGroup })
+
+    const groupElements = wrapper.findAll('.query-group')
+    const nestedAddGroup = groupElements[1]
+      ?.findAll('button')
+      .find((button) => button.text() === 'Add group')
+    expect(nestedAddGroup?.attributes('disabled')).toBeDefined()
+    expect(nestedAddGroup?.attributes('title')).toBe('Maximum nested group depth reached')
+  })
 })

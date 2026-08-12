@@ -49,7 +49,19 @@ const filter = ref<QueryGroup>(createGroup())
 </template>
 ```
 
-`QueryBuilder` accepts `modelValue`, `fields`, and an optional `ariaLabel` (`aria-label` in templates), and emits `update:modelValue`. Vue's `v-model` provides the concise form shown above. Normal attributes such as `class` and `style` are forwarded to the root element.
+`QueryBuilder` accepts `modelValue`, `fields`, an optional `ariaLabel` (`aria-label` in templates), and an optional `maxNestedGroupDepth`. It emits `update:modelValue`. Vue's `v-model` provides the concise form shown above. Normal attributes such as `class` and `style` are forwarded to the root element.
+
+Use `maxNestedGroupDepth` to limit groups beneath the root. Existing groups still render; the limit only disables creating deeper groups:
+
+```vue
+<QueryBuilder
+  v-model="filter"
+  :fields="fields"
+  :max-nested-group-depth="2"
+/>
+```
+
+Here, the root is depth `0`, and users can create nested groups at depths `1` and `2`.
 
 ## Submitting a query
 
