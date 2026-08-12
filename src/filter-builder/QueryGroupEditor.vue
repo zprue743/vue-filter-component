@@ -29,8 +29,9 @@ interface QueryGroupEditorEmits {
 
 const props = withDefaults(defineProps<QueryGroupEditorProps>(), { depth: 0 })
 const emit = defineEmits<QueryGroupEditorEmits>()
+const currentDepth = computed(() => props.depth ?? 0)
 const canAddGroup = computed(
-  () => props.maxNestedGroupDepth === undefined || props.depth < props.maxNestedGroupDepth,
+  () => props.maxNestedGroupDepth === undefined || currentDepth.value < props.maxNestedGroupDepth,
 )
 
 function updateChild(index: number, child: QueryCondition | QueryGroup) {
@@ -115,7 +116,7 @@ function onCombinatorChange(event: Event) {
           v-if="child.kind === 'group'"
           :group="child"
           :fields="fields"
-          :depth="depth + 1"
+          :depth="currentDepth + 1"
           :max-nested-group-depth="maxNestedGroupDepth"
           @update:group="updateChild(index, $event)"
           @remove="removeChild(index)"
