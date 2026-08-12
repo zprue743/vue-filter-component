@@ -140,6 +140,7 @@ const statusField: QueryField = {
   label: 'Status',
   type: 'select',
   multiple: true,
+  showBulkActions: true,
   options: [
     { value: 'active', label: 'Active' },
     { value: 'pending', label: 'Pending' },
@@ -147,7 +148,7 @@ const statusField: QueryField = {
 }
 ```
 
-The searchable multi-select menu stays open while options are toggled. **Select all** selects the currently visible search results, while **Clear all** removes every selection. Users can close the menu with the trigger, Escape, by tabbing away, or by clicking elsewhere. The trigger keeps a stable position while removable tokens wrap beneath it, and the option list supports Arrow keys plus Home and End.
+The searchable multi-select menu stays open while options are toggled. Set `showBulkActions: true` to display **Select all** and **Clear all**; Select all applies to the currently visible search results, while Clear all removes every selection. Users can close the menu with the trigger, Escape, by tabbing away, or by clicking elsewhere. The trigger keeps a stable position while removable tokens wrap beneath it, and the option list supports Arrow keys plus Home and End.
 
 Select fields can receive static `options`, or a consumer-owned async loader:
 

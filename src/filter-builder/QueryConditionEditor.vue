@@ -348,7 +348,7 @@ onBeforeUnmount(() => {
               @keydown="onMultiSelectSearchKeydown"
             />
           </label>
-          <div class="query-multi-select-actions">
+          <div v-if="field.showBulkActions" class="query-multi-select-actions">
             <button
               type="button"
               :disabled="filteredMultiSelectOptions.length === 0"

@@ -131,6 +131,8 @@ describe('QueryConditionEditor', () => {
 
     await wrapper.get('[data-testid="multi-select-trigger"]').trigger('click')
     expect(wrapper.findAll('button').some((button) => button.text() === 'Done')).toBe(false)
+    expect(wrapper.findAll('button').some((button) => button.text() === 'Select all')).toBe(false)
+    expect(wrapper.findAll('button').some((button) => button.text() === 'Clear all')).toBe(false)
     await wrapper.get('[aria-label="Search values"]').setValue('pending')
     expect(wrapper.findAll('[role="option"]')).toHaveLength(1)
     const pendingOption = wrapper.findAll('[role="option"]').find((option) =>
@@ -189,6 +191,7 @@ describe('QueryConditionEditor', () => {
         label: 'Status',
         type: 'select',
         multiple: true,
+        showBulkActions: true,
         options: [
           { value: 'active', label: 'Active' },
           { value: 'inactive', label: 'Inactive' },

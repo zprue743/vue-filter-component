@@ -51,6 +51,8 @@ export interface QueryField {
   loadOptions?: QueryOptionLoader
   /** Allows a select field to store multiple option values and display them as removable tokens. */
   multiple?: boolean
+  /** Shows Select all and Clear all actions for a multi-select field. */
+  showBulkActions?: boolean
   /** Optional hint displayed by the value control. */
   placeholder?: string
 }
