@@ -135,6 +135,18 @@ function toggleSelectedOption(option: QueryOption) {
   })
 }
 
+function selectAllVisibleOptions() {
+  const values = [...selectedValues.value]
+  for (const option of filteredMultiSelectOptions.value) {
+    if (!values.some((value) => Object.is(value, option.value))) values.push(option.value)
+  }
+  update({ value: values })
+}
+
+function clearSelectedOptions() {
+  update({ value: [] })
+}
+
 function removeSelectedValue(valueToRemove: QueryOptionValue) {
   update({
     value: selectedValues.value.filter((value) => !Object.is(value, valueToRemove)),
@@ -336,6 +348,22 @@ onBeforeUnmount(() => {
               @keydown="onMultiSelectSearchKeydown"
             />
           </label>
+          <div class="query-multi-select-actions">
+            <button
+              type="button"
+              :disabled="filteredMultiSelectOptions.length === 0"
+              @click="selectAllVisibleOptions"
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              :disabled="selectedValues.length === 0"
+              @click="clearSelectedOptions"
+            >
+              Clear all
+            </button>
+          </div>
           <div
             :id="multiSelectListboxId"
             class="query-multi-select-listbox"
@@ -573,6 +601,23 @@ onBeforeUnmount(() => {
   display: block;
   padding: 0.5rem;
   border-bottom: 1px solid var(--query-border);
+}
+
+.query-multi-select-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--query-border);
+
+  > button {
+    min-height: 1.75rem;
+    padding: 0.15rem 0.4rem;
+    border: 0;
+    background: transparent;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
 }
 
 .query-visually-hidden {

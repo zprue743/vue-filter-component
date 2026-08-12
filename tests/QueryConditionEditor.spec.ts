@@ -182,6 +182,41 @@ describe('QueryConditionEditor', () => {
     expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toMatchObject({ value: [2] })
   })
 
+  it('selects visible search results and clears all multi-select values', async () => {
+    const fields: QueryField[] = [
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        multiple: true,
+        options: [
+          { value: 'active', label: 'Active' },
+          { value: 'inactive', label: 'Inactive' },
+          { value: 'pending', label: 'Pending' },
+        ],
+      },
+    ]
+    const wrapper = mount(QueryConditionEditor, {
+      props: {
+        condition: { ...condition, field: 'status', operator: 'in', value: ['pending'] },
+        fields,
+      },
+    })
+
+    await wrapper.get('[data-testid="multi-select-trigger"]').trigger('click')
+    await wrapper.get('[aria-label="Search values"]').setValue('active')
+    await wrapper.findAll('button').find((button) => button.text() === 'Select all')?.trigger('click')
+
+    const selected = wrapper.emitted('update:condition')?.at(-1)?.[0] as QueryCondition
+    expect(selected.value).toEqual(['pending', 'active', 'inactive'])
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(true)
+
+    await wrapper.setProps({ condition: selected })
+    await wrapper.findAll('button').find((button) => button.text() === 'Clear all')?.trigger('click')
+    expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toMatchObject({ value: [] })
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(true)
+  })
+
   it('supports keyboard navigation and closes the multi-select with Escape', async () => {
     const fields: QueryField[] = [
       {
