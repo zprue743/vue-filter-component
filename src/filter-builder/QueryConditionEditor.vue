@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { defaultValueFor, operatorsFor } from './tree'
 import type {
   QueryCondition,
@@ -34,6 +34,9 @@ const emit = defineEmits<QueryConditionEditorEmits>()
 const search = ref('')
 const loadedOptions = ref<QueryOption[]>([])
 const optionState = ref<'idle' | 'loading' | 'loaded' | 'empty' | 'error'>('idle')
+const isMultiSelectOpen = ref(false)
+const multiSelectRoot = ref<HTMLElement>()
+const multiSelectTrigger = ref<HTMLButtonElement>()
 
 const field = computed(() => props.fields.find((item) => item.key === props.condition.field))
 const operators = computed(() => operatorsFor(field.value))
@@ -59,6 +62,7 @@ const selectedOptions = computed(() =>
     label: options.value.find((option) => Object.is(option.value, value))?.label ?? String(value),
   })),
 )
+const multiSelectListboxId = computed(() => `query-multi-select-${props.condition.id}`)
 
 function update(changes: Partial<QueryCondition>) {
   emit('update:condition', { ...props.condition, ...changes })
@@ -98,17 +102,6 @@ function onOperatorChange(event: Event) {
 
 function onValueChange(event: Event) {
   const target = event.target as HTMLInputElement | HTMLSelectElement
-
-  if (isMultiSelect.value) {
-    const option = options.value.find((item) => String(item.value) === target.value)
-    if (option && !selectedValues.value.some((value) => Object.is(value, option.value))) {
-      update({ value: [...selectedValues.value, option.value] })
-    }
-    // The picker is an add control; selected values are represented by the tokens below it.
-    target.value = ''
-    return
-  }
-
   let value: QueryScalar = target.value
 
   if (field.value?.type === 'number') value = target.value === '' ? null : Number(target.value)
@@ -120,10 +113,77 @@ function onValueChange(event: Event) {
   update({ value })
 }
 
+function isOptionSelected(value: QueryOptionValue) {
+  return selectedValues.value.some((selectedValue) => Object.is(selectedValue, value))
+}
+
+function toggleSelectedOption(option: QueryOption) {
+  update({
+    value: isOptionSelected(option.value)
+      ? selectedValues.value.filter((value) => !Object.is(value, option.value))
+      : [...selectedValues.value, option.value],
+  })
+}
+
 function removeSelectedValue(valueToRemove: QueryOptionValue) {
   update({
     value: selectedValues.value.filter((value) => !Object.is(value, valueToRemove)),
   })
+}
+
+function focusMultiSelectOption(index: number) {
+  void nextTick(() => {
+    const optionElements = multiSelectRoot.value?.querySelectorAll<HTMLButtonElement>('[role="option"]')
+    optionElements?.[index]?.focus()
+  })
+}
+
+function openMultiSelect(focusIndex?: number) {
+  isMultiSelectOpen.value = true
+  if (focusIndex !== undefined) focusMultiSelectOption(focusIndex)
+}
+
+function closeMultiSelect(restoreFocus = false) {
+  isMultiSelectOpen.value = false
+  if (restoreFocus) void nextTick(() => multiSelectTrigger.value?.focus())
+}
+
+function toggleMultiSelect() {
+  if (isMultiSelectOpen.value) closeMultiSelect()
+  else openMultiSelect()
+}
+
+function onMultiSelectTriggerKeydown(event: KeyboardEvent) {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault()
+    const lastIndex = Math.max(options.value.length - 1, 0)
+    openMultiSelect(event.key === 'ArrowDown' ? 0 : lastIndex)
+  } else if (event.key === 'Escape' && isMultiSelectOpen.value) {
+    event.preventDefault()
+    closeMultiSelect()
+  }
+}
+
+function onMultiSelectOptionKeydown(event: KeyboardEvent, index: number) {
+  const lastIndex = options.value.length - 1
+  let nextIndex: number | undefined
+
+  if (event.key === 'ArrowDown') nextIndex = index === lastIndex ? 0 : index + 1
+  if (event.key === 'ArrowUp') nextIndex = index === 0 ? lastIndex : index - 1
+  if (event.key === 'Home') nextIndex = 0
+  if (event.key === 'End') nextIndex = lastIndex
+
+  if (nextIndex !== undefined) {
+    event.preventDefault()
+    focusMultiSelectOption(nextIndex)
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    closeMultiSelect(true)
+  }
+}
+
+function closeMultiSelectFromOutside(event: Event) {
+  if (!multiSelectRoot.value?.contains(event.target as Node)) closeMultiSelect()
 }
 
 function onDateRangeChange(index: 0 | 1, event: Event) {
@@ -154,10 +214,21 @@ watch(
     search.value = ''
     loadedOptions.value = []
     optionState.value = 'idle'
+    isMultiSelectOpen.value = false
     if (field.value?.loadOptions) void loadDynamicOptions()
   },
   { immediate: true },
 )
+
+onMounted(() => {
+  document.addEventListener('pointerdown', closeMultiSelectFromOutside)
+  document.addEventListener('focusin', closeMultiSelectFromOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', closeMultiSelectFromOutside)
+  document.removeEventListener('focusin', closeMultiSelectFromOutside)
+})
 </script>
 
 <template>
@@ -194,10 +265,89 @@ watch(
     </label>
 
     <div v-if="field?.type === 'select'" class="query-value query-select-value">
-      <label class="query-control">
+      <div v-if="isMultiSelect" ref="multiSelectRoot" class="query-multi-select">
+        <span class="query-control-label">Value</span>
+        <button
+          ref="multiSelectTrigger"
+          type="button"
+          class="query-multi-select-trigger"
+          aria-haspopup="listbox"
+          :aria-expanded="isMultiSelectOpen"
+          :aria-controls="multiSelectListboxId"
+          :disabled="optionState === 'loading'"
+          data-testid="multi-select-trigger"
+          @click="toggleMultiSelect"
+          @keydown="onMultiSelectTriggerKeydown"
+        >
+          <span>
+            {{
+              selectedValues.length > 0
+                ? `${selectedValues.length} selected`
+                : field.placeholder ?? 'Select values'
+            }}
+          </span>
+          <span class="query-multi-select-chevron" aria-hidden="true">⌄</span>
+        </button>
+
+        <div v-if="isMultiSelectOpen" class="query-multi-select-popover">
+          <div
+            :id="multiSelectListboxId"
+            class="query-multi-select-listbox"
+            role="listbox"
+            aria-label="Values"
+            aria-multiselectable="true"
+          >
+            <button
+              v-for="(option, index) in options"
+              :key="`${typeof option.value}:${String(option.value)}`"
+              type="button"
+              class="query-multi-select-option"
+              role="option"
+              :aria-selected="isOptionSelected(option.value)"
+              @click="toggleSelectedOption(option)"
+              @keydown="onMultiSelectOptionKeydown($event, index)"
+            >
+              <span class="query-option-checkbox" aria-hidden="true">
+                {{ isOptionSelected(option.value) ? '✓' : '' }}
+              </span>
+              <span>{{ option.label }}</span>
+            </button>
+            <p v-if="options.length === 0" class="query-option-empty">No values available.</p>
+          </div>
+          <div class="query-multi-select-footer">
+            <button type="button" @click="closeMultiSelect(true)">Done</button>
+          </div>
+        </div>
+
+        <div
+          v-if="selectedOptions.length > 0"
+          class="query-tokens"
+          role="list"
+          aria-label="Selected values"
+        >
+          <span
+            v-for="option in selectedOptions"
+            :key="`${typeof option.value}:${String(option.value)}`"
+            class="query-token"
+            role="listitem"
+          >
+            <span>{{ option.label }}</span>
+            <button
+              type="button"
+              class="query-token-remove"
+              :aria-label="`Remove ${option.label}`"
+              @click="removeSelectedValue(option.value)"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <label v-else class="query-control">
         <span>Value</span>
         <select
-          :value="isMultiSelect ? '' : scalarValue ?? ''"
+          :value="scalarValue ?? ''"
           aria-label="Value"
           data-testid="value-select"
           :disabled="optionState === 'loading'"
@@ -208,36 +358,11 @@ watch(
             v-for="option in options"
             :key="`${typeof option.value}:${String(option.value)}`"
             :value="option.value"
-            :disabled="selectedValues.some((value) => Object.is(value, option.value))"
           >
             {{ option.label }}
           </option>
         </select>
       </label>
-
-      <div
-        v-if="isMultiSelect && selectedOptions.length > 0"
-        class="query-tokens"
-        role="list"
-        aria-label="Selected values"
-      >
-        <span
-          v-for="option in selectedOptions"
-          :key="`${typeof option.value}:${String(option.value)}`"
-          class="query-token"
-          role="listitem"
-        >
-          <span>{{ option.label }}</span>
-          <button
-            type="button"
-            class="query-token-remove"
-            :aria-label="`Remove ${option.label}`"
-            @click="removeSelectedValue(option.value)"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </span>
-      </div>
 
       <div v-if="isDynamicSelect" class="query-option-loader">
         <label class="query-control query-search-control">
@@ -310,11 +435,11 @@ watch(
 .query-condition,
 .query-option-loader {
   display: flex;
-  align-items: end;
   gap: 0.75rem;
 }
 
 .query-condition {
+  align-items: start;
   flex-wrap: wrap;
   padding: 0.75rem;
   border-left: 3px solid var(--query-border);
@@ -322,6 +447,7 @@ watch(
 }
 
 .query-option-loader {
+  align-items: end;
   flex-wrap: wrap;
 }
 
@@ -347,12 +473,103 @@ watch(
   gap: 0.75rem;
 }
 
+.query-multi-select {
+  position: relative;
+  display: grid;
+  flex: 1 1 14rem;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.query-control-label {
+  color: var(--query-muted-text);
+  font-size: 0.8rem;
+}
+
+.query-multi-select-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-inline: 0.5rem;
+  text-align: left;
+}
+
+.query-multi-select-chevron {
+  transition: transform 120ms ease;
+}
+
+.query-multi-select-trigger[aria-expanded='true'] .query-multi-select-chevron {
+  transform: rotate(180deg);
+}
+
+.query-multi-select-popover {
+  position: absolute;
+  z-index: 10;
+  top: 3.75rem;
+  left: 0;
+  width: max(100%, 16rem);
+  max-width: min(24rem, calc(100vw - 2rem));
+  overflow: hidden;
+  border: 1px solid var(--query-border);
+  border-radius: 3px;
+  background: var(--query-surface);
+  box-shadow: 0 0.5rem 1.25rem rgb(0 0 0 / 16%);
+}
+
+.query-multi-select-listbox {
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: 0.25rem;
+}
+
+.query-multi-select-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.55rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--query-muted-surface);
+  }
+}
+
+.query-option-checkbox {
+  display: inline-grid;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 1.1rem;
+  place-items: center;
+  border: 1px solid var(--query-border);
+  border-radius: 2px;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.query-option-empty {
+  margin: 0;
+  padding: 0.6rem;
+  color: var(--query-muted-text);
+}
+
+.query-multi-select-footer {
+  display: flex;
+  justify-content: end;
+  padding: 0.4rem;
+  border-top: 1px solid var(--query-border);
+}
+
 .query-tokens {
   display: flex;
-  flex: 1 0 100%;
   flex-wrap: wrap;
   gap: 0.4rem;
   min-width: 0;
+  margin-top: 0.25rem;
 }
 
 .query-token {
@@ -431,7 +648,8 @@ button {
   .query-value,
   .query-select-value,
   .query-date-range,
-  .query-option-loader {
+  .query-option-loader,
+  .query-multi-select {
     width: 100%;
   }
 

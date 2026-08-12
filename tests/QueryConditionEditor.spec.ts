@@ -128,7 +128,14 @@ describe('QueryConditionEditor', () => {
     expect(wrapper.get('[data-testid="operator-select"]').text()).toContain('Includes any of')
     expect(wrapper.get('[aria-label="Selected values"]').text()).toContain('Active')
 
-    await wrapper.get('[data-testid="value-select"]').setValue('pending')
+    await wrapper.get('[data-testid="multi-select-trigger"]').trigger('click')
+    const pendingOption = wrapper.findAll('[role="option"]').find((option) =>
+      option.text().includes('Pending review'),
+    )
+    await pendingOption?.trigger('click')
+
+    expect(wrapper.get('[data-testid="multi-select-trigger"]').attributes('aria-expanded')).toBe('true')
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(true)
     const withPending = wrapper.emitted('update:condition')?.at(-1)?.[0] as QueryCondition
     expect(withPending.value).toEqual(['active', 'pending'])
 
@@ -139,6 +146,10 @@ describe('QueryConditionEditor', () => {
     expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toMatchObject({
       value: ['pending'],
     })
+
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(false)
   })
 
   it('preserves numeric option values in a multi-select condition', async () => {
@@ -158,8 +169,41 @@ describe('QueryConditionEditor', () => {
       },
     })
 
-    await wrapper.get('[data-testid="value-select"]').setValue('2')
+    await wrapper.get('[data-testid="multi-select-trigger"]').trigger('click')
+    await wrapper.get('[role="option"]').trigger('click')
     expect(wrapper.emitted('update:condition')?.at(-1)?.[0]).toMatchObject({ value: [2] })
+  })
+
+  it('supports keyboard navigation and closes the multi-select with Escape', async () => {
+    const fields: QueryField[] = [
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        multiple: true,
+        options: [
+          { value: 'active', label: 'Active' },
+          { value: 'pending', label: 'Pending' },
+        ],
+      },
+    ]
+    const wrapper = mount(QueryConditionEditor, {
+      attachTo: document.body,
+      props: {
+        condition: { ...condition, field: 'status', operator: 'in', value: [] },
+        fields,
+      },
+    })
+    const trigger = wrapper.get<HTMLButtonElement>('[data-testid="multi-select-trigger"]')
+
+    await trigger.trigger('keydown', { key: 'ArrowDown' })
+    expect(document.activeElement?.textContent).toContain('Active')
+
+    await wrapper.get('[role="option"]').trigger('keydown', { key: 'Escape' })
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(false)
+    expect(document.activeElement).toBe(trigger.element)
+
+    wrapper.unmount()
   })
 
   it('shows an error when a dynamic option loader rejects', async () => {

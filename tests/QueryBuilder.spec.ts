@@ -86,7 +86,11 @@ describe('QueryBuilder', () => {
     ])
     const wrapper = mount(QueryBuilder, { props: { modelValue: query, fields } })
 
-    await wrapper.get('[data-testid="value-select"]').setValue('pending')
+    await wrapper.get('[data-testid="multi-select-trigger"]').trigger('click')
+    const pendingOption = wrapper.findAll('[role="option"]').find((option) =>
+      option.text().includes('Pending'),
+    )
+    await pendingOption?.trigger('click')
 
     const updated = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as QueryGroup
     expect(updated.children[0]).toMatchObject({
