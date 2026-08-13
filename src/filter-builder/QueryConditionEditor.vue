@@ -31,7 +31,6 @@ interface QueryConditionEditorEmits {
 const props = defineProps<QueryConditionEditorProps>()
 const emit = defineEmits<QueryConditionEditorEmits>()
 
-const search = ref('')
 const loadedOptions = ref<QueryOption[]>([])
 const optionState = ref<'idle' | 'loading' | 'loaded' | 'empty' | 'error'>('idle')
 const isMultiSelectOpen = ref(false)
@@ -44,7 +43,6 @@ const multiSelectSearchInput = ref<HTMLInputElement>()
 const field = computed(() => props.fields.find((item) => item.key === props.condition.field))
 const operators = computed(() => operatorsFor(field.value))
 const options = computed(() => field.value?.options ?? loadedOptions.value)
-const isDynamicSelect = computed(() => field.value?.type === 'select' && Boolean(field.value.loadOptions))
 const isMultiSelect = computed(() => field.value?.type === 'select' && field.value.multiple === true)
 const isDateRange = computed(() => field.value?.type === 'date' && props.condition.operator === 'between')
 const dateRange = computed<QueryDateRange>(() => {
@@ -241,7 +239,7 @@ async function loadDynamicOptions() {
   optionState.value = 'loading'
   loadedOptions.value = []
   try {
-    const result = await loader(search.value || undefined)
+    const result = await loader()
     loadedOptions.value = result
     optionState.value = result.length > 0 ? 'loaded' : 'empty'
   } catch {
@@ -253,7 +251,6 @@ watch(
   () => field.value?.key,
   () => {
     // Loaded options belong to one field and must not leak into another selection.
-    search.value = ''
     loadedOptions.value = []
     optionState.value = 'idle'
     isMultiSelectOpen.value = false
@@ -437,17 +434,15 @@ onBeforeUnmount(() => {
         </select>
       </label>
 
-      <div v-if="isDynamicSelect" class="query-option-loader">
-        <label class="query-control query-search-control">
-          <span>Search values</span>
-          <input v-model="search" type="search" aria-label="Search values" />
-        </label>
-        <button type="button" :disabled="optionState === 'loading'" @click="loadDynamicOptions">
-          {{ optionState === 'loading' ? 'Loading…' : 'Load values' }}
-        </button>
-        <span v-if="optionState === 'empty'" role="status">No values found.</span>
-        <span v-else-if="optionState === 'error'" role="alert">Values could not be loaded.</span>
-      </div>
+      <span v-if="optionState === 'loading'" class="query-option-status" role="status">
+        Loading values…
+      </span>
+      <span v-else-if="optionState === 'empty'" class="query-option-status" role="status">
+        No values found.
+      </span>
+      <span v-else-if="optionState === 'error'" class="query-option-status" role="alert">
+        Values could not be loaded.
+      </span>
     </div>
 
     <label v-else-if="field?.type === 'boolean'" class="query-control query-value">
@@ -505,8 +500,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-.query-condition,
-.query-option-loader {
+.query-condition {
   display: flex;
   gap: 0.75rem;
 }
@@ -517,11 +511,6 @@ onBeforeUnmount(() => {
   padding: 0.75rem;
   border-left: 3px solid var(--query-border);
   background: var(--query-muted-surface);
-}
-
-.query-option-loader {
-  align-items: end;
-  flex-wrap: wrap;
 }
 
 .query-control {
@@ -705,8 +694,10 @@ onBeforeUnmount(() => {
   }
 }
 
-.query-search-control {
-  min-width: 8rem;
+.query-option-status {
+  align-self: center;
+  color: var(--query-muted-text);
+  font-size: 0.8rem;
 }
 
 input,
@@ -747,12 +738,10 @@ button {
   .query-value,
   .query-select-value,
   .query-date-range,
-  .query-option-loader,
   .query-multi-select {
     width: 100%;
   }
 
-  .query-option-loader > button,
   .query-remove {
     width: 100%;
   }

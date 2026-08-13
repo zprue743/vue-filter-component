@@ -32,7 +32,7 @@ export interface QueryOperator {
   label: string
 }
 
-/** Loads options for a select field, optionally filtered by a search term. */
+/** Loads options for a select field; consumers may reuse the loader with an optional search term. */
 export type QueryOptionLoader = (search?: string) => Promise<QueryOption[]>
 
 /** Describes one field that users may include in a query. */

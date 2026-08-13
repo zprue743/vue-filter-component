@@ -124,7 +124,7 @@ describe('QueryBuilder', () => {
 
     await flushPromises()
 
-    expect(loadOptions).toHaveBeenCalledWith(undefined)
+    expect(loadOptions).toHaveBeenCalledWith()
     expect(wrapper.get('[data-testid="value-select"]').text()).toContain('Acme Corp')
   })
 

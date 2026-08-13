@@ -6,12 +6,9 @@ const customers: QueryOption[] = [
   { value: '789', label: 'Northwind Traders' },
 ]
 
-async function loadCustomers(search?: string): Promise<QueryOption[]> {
+async function loadCustomers(): Promise<QueryOption[]> {
   await new Promise((resolve) => window.setTimeout(resolve, 450))
-  const query = search?.trim().toLocaleLowerCase()
-  return query
-    ? customers.filter((customer) => customer.label.toLocaleLowerCase().includes(query))
-    : customers
+  return customers
 }
 
 export const demoFields: QueryField[] = [

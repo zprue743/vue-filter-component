@@ -268,7 +268,9 @@ describe('QueryConditionEditor', () => {
 
     await flushPromises()
 
-    expect(loadOptions).toHaveBeenCalledWith(undefined)
+    expect(loadOptions).toHaveBeenCalledWith()
+    expect(wrapper.find('.query-option-loader').exists()).toBe(false)
+    expect(wrapper.findAll('[aria-label="Search values"]')).toHaveLength(0)
     expect(wrapper.get('[role="alert"]').text()).toBe('Values could not be loaded.')
   })
 
@@ -292,8 +294,9 @@ describe('QueryConditionEditor', () => {
     await flushPromises()
 
     expect(loadOptions).toHaveBeenCalledOnce()
-    expect(loadOptions).toHaveBeenCalledWith(undefined)
+    expect(loadOptions).toHaveBeenCalledWith()
     await wrapper.get('[data-testid="multi-select-trigger"]').trigger('click')
     expect(wrapper.text()).toContain('Acme')
+    expect(wrapper.findAll('[aria-label="Search values"]')).toHaveLength(1)
   })
 })

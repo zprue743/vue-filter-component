@@ -169,14 +169,14 @@ const customerField: QueryField = {
   key: 'customerId',
   label: 'Customer',
   type: 'select',
-  loadOptions: async (search) => {
-    const response = await fetch(`/customers?q=${encodeURIComponent(search ?? '')}`)
+  loadOptions: async () => {
+    const response = await fetch('/customers')
     return response.json()
   },
 }
 ```
 
-The component calls the loader initially and when the user chooses **Load values**. It displays loading, empty, and error states. Fetching, authorization, caching, and response mapping remain the consumer's responsibility.
+The component calls the loader when the field becomes active and displays loading, empty, and error states. Multi-select users can filter the loaded options from the search input inside the dropdown. Fetching, authorization, caching, and response mapping remain the consumer's responsibility.
 
 ## Styling
 
