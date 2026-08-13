@@ -271,4 +271,29 @@ describe('QueryConditionEditor', () => {
     expect(loadOptions).toHaveBeenCalledWith(undefined)
     expect(wrapper.get('[role="alert"]').text()).toBe('Values could not be loaded.')
   })
+
+  it('loads options when an existing condition switches to a dynamic multi-select field', async () => {
+    const loadOptions = vi.fn().mockResolvedValue([{ value: '123', label: 'Acme' }])
+    const fields: QueryField[] = [
+      { key: 'name', label: 'Name', type: 'string' },
+      {
+        key: 'customerId',
+        label: 'Customer',
+        type: 'select',
+        multiple: true,
+        loadOptions,
+      },
+    ]
+    const wrapper = mount(QueryConditionEditor, { props: { condition, fields } })
+
+    await wrapper.get('[data-testid="field-select"]').setValue('customerId')
+    const updated = wrapper.emitted('update:condition')?.at(-1)?.[0] as QueryCondition
+    await wrapper.setProps({ condition: updated })
+    await flushPromises()
+
+    expect(loadOptions).toHaveBeenCalledOnce()
+    expect(loadOptions).toHaveBeenCalledWith(undefined)
+    await wrapper.get('[data-testid="multi-select-trigger"]').trigger('click')
+    expect(wrapper.text()).toContain('Acme')
+  })
 })
