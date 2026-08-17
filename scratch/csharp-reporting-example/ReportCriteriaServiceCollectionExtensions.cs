@@ -9,9 +9,12 @@ public static class ReportCriteriaServiceCollectionExtensions
     /// <summary>Adds the report field handlers, registry, and recursive predicate builder.</summary>
     public static IServiceCollection AddReportCriteria(this IServiceCollection services)
     {
-        services.AddSingleton<IReportConditionHandler<ReportRow>, StatusConditionHandler>();
-        services.AddSingleton<IReportConditionHandler<ReportRow>, CreatedDateConditionHandler>();
-        services.AddSingleton<IReportConditionHandler<ReportRow>, RevenueConditionHandler>();
+        services.AddSingleton<IReportConditionHandler<ReportRow>>(
+            new SelectConditionHandler<ReportRow>("status", row => row.Status));
+        services.AddSingleton<IReportConditionHandler<ReportRow>>(
+            new DateConditionHandler<ReportRow>("createdDate", row => row.CreatedDate));
+        services.AddSingleton<IReportConditionHandler<ReportRow>>(
+            new NumberConditionHandler<ReportRow>("revenue", row => row.Revenue));
         services.AddSingleton<ReportConditionHandlerRegistry<ReportRow>>();
         services.AddSingleton<ReportPredicateBuilder<ReportRow>>();
 

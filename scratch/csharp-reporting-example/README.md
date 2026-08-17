@@ -30,4 +30,19 @@ var rows = await dbContext.ReportRows
 
 Validation of nesting limits, unique node IDs, field authorization, and permitted values should occur before predicate construction. The handlers still reject unsupported operators and malformed JSON as a defensive boundary.
 
-The sample `ReportRow` and its three handlers are placeholders. Replace them with the entity or projection used by the reporting backend and add one handler for each stable UI field key.
+The sample `ReportRow` and its handlers are placeholders. Replace them with the entity or projection used by the reporting backend and register one handler instance for each stable UI field key.
+
+Each handler contains the parsing and operator behavior for one value type. Fields supply only their stable key and property selector:
+
+```csharp
+services.AddSingleton<IReportConditionHandler<ReportRow>>(
+    new SelectConditionHandler<ReportRow>("status", row => row.Status));
+services.AddSingleton<IReportConditionHandler<ReportRow>>(
+    new DateConditionHandler<ReportRow>("createdDate", row => row.CreatedDate));
+services.AddSingleton<IReportConditionHandler<ReportRow>>(
+    new NumberConditionHandler<ReportRow>("revenue", row => row.Revenue));
+```
+
+Additional fields require only another configured handler instance. For example, another date field can reuse `DateConditionHandler<T>` with `"closedDate"` and `row => row.ClosedDate`.
+
+The registry still dispatches by the saved field key, so this remains compatible with the original design and payload. Reusable handlers remove the need for a separate class for every model property.
