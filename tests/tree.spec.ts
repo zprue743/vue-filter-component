@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  COLLECTION_SELECT_OPERATORS,
   addChild,
   createCondition,
   createGroup,
@@ -63,6 +64,26 @@ describe('filter tree helpers', () => {
       kind: 'condition',
       field: 'status',
       operator: 'in',
+      value: [],
+    })
+  })
+
+  it('provides explicit operators for collection-backed multi-select fields', () => {
+    const field: QueryField = {
+      key: 'codes',
+      label: 'Codes',
+      type: 'select',
+      multiple: true,
+      operators: COLLECTION_SELECT_OPERATORS,
+    }
+
+    expect(operatorsFor(field)).toEqual([
+      { value: 'includes_any', label: 'Includes any of' },
+      { value: 'includes_all', label: 'Includes all of' },
+      { value: 'includes_none', label: 'Includes none of' },
+    ])
+    expect(createCondition([field], { id: 'codes-1' })).toMatchObject({
+      operator: 'includes_any',
       value: [],
     })
   })

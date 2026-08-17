@@ -1,4 +1,8 @@
-import type { QueryField, QueryOption } from '../filter-builder'
+import {
+  COLLECTION_SELECT_OPERATORS,
+  type QueryField,
+  type QueryOption,
+} from '../filter-builder'
 
 const customers: QueryOption[] = [
   { value: '123', label: 'Acme Corp' },
@@ -12,6 +16,29 @@ async function loadCustomers(): Promise<QueryOption[]> {
 }
 
 export const demoFields: QueryField[] = [
+  {
+    key: 'codes',
+    label: 'Codes',
+    type: 'select',
+    multiple: true,
+    operators: COLLECTION_SELECT_OPERATORS,
+    options: [
+      { value: 'priority', label: 'Priority' },
+      { value: 'follow-up', label: 'Follow-up' },
+      { value: 'review', label: 'Review' },
+    ],
+  },
+  {
+    key: 'labels',
+    label: 'Labels',
+    type: 'select',
+    multiple: true,
+    operators: COLLECTION_SELECT_OPERATORS,
+    options: [
+      { value: 'label1', label: 'Label 1' },
+      { value: 'label2', label: 'Label 2' },
+    ],
+  },
   {
     key: 'status',
     label: 'Status',

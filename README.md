@@ -162,6 +162,26 @@ const statusField: QueryField = {
 
 The searchable multi-select menu stays open while options are toggled. Set `showBulkActions: true` to display **Select all** and **Clear all**; Select all applies to the currently visible search results, while Clear all removes every selection. Users can close the menu with the trigger, Escape, by tabbing away, or by clicking elsewhere. The trigger keeps a stable position while removable tokens wrap beneath it, and the option list supports Arrow keys plus Home and End.
 
+For fields backed by an array or another collection, use the exported `COLLECTION_SELECT_OPERATORS` to request explicit set semantics:
+
+```ts
+import { COLLECTION_SELECT_OPERATORS, type QueryField } from './filter-builder'
+
+const codesField: QueryField = {
+  key: 'codes',
+  label: 'Codes',
+  type: 'select',
+  multiple: true,
+  operators: COLLECTION_SELECT_OPERATORS,
+  options: [
+    { value: 'priority', label: 'Priority' },
+    { value: 'review', label: 'Review' },
+  ],
+}
+```
+
+These operators emit `includes_any`, `includes_all`, or `includes_none` with an array value. They are opt-in so scalar-backed multi-select fields retain their existing `in` and `not_in` payloads.
+
 Select fields can receive static `options`, or a consumer-owned async loader:
 
 ```ts

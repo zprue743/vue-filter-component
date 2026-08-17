@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.Extensions.DependencyInjection;
 using Reporting.Criteria.Handlers;
 
@@ -15,6 +16,16 @@ public static class ReportCriteriaServiceCollectionExtensions
             new DateConditionHandler<ReportRow>("createdDate", row => row.CreatedDate));
         services.AddSingleton<IReportConditionHandler<ReportRow>>(
             new NumberConditionHandler<ReportRow>("revenue", row => row.Revenue));
+        services.AddSingleton<IReportConditionHandler<ReportRow>>(
+            new StringCollectionConditionHandler<ReportRow>("codes", row => row.Codes));
+        services.AddSingleton<IReportConditionHandler<ReportRow>>(
+            new BooleanFlagsConditionHandler<ReportRow>(
+                "labels",
+                new Dictionary<string, Expression<Func<ReportRow, bool?>>>(StringComparer.Ordinal)
+                {
+                    ["label1"] = row => row.Label1,
+                    ["label2"] = row => row.Label2
+                }));
         services.AddSingleton<ReportConditionHandlerRegistry<ReportRow>>();
         services.AddSingleton<ReportPredicateBuilder<ReportRow>>();
 

@@ -46,3 +46,7 @@ services.AddSingleton<IReportConditionHandler<ReportRow>>(
 Additional fields require only another configured handler instance. `DateConditionHandler<T>` accepts both `DateOnly` and `DateOnly?` properties, so nullable database columns use the same registration. A null database value does not match the existing date comparison operators.
 
 The registry still dispatches by the saved field key, so this remains compatible with the original design and payload. Reusable handlers remove the need for a separate class for every model property.
+
+Collection-backed multi-select fields use explicit `includes_any`, `includes_all`, and `includes_none` operators. A `text[]` column uses `StringCollectionConditionHandler<T>`. A synthetic labels field backed by several Boolean columns uses one `BooleanFlagsConditionHandler<T>` with an allow-listed selector for each option value. Both handlers reject empty selections and unknown operators; the flags handler also rejects unknown label values.
+
+The string-array handler builds standard LINQ collection expressions. Confirm that the application's EF Core provider translates those expressions for its array mapping rather than evaluating them on the client.

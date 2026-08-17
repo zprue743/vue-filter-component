@@ -44,6 +44,13 @@ const MULTI_SELECT_OPERATORS: QueryOperator[] = [
   { value: 'not_in', label: 'Excludes all of' },
 ]
 
+/** Set operators for multi-select fields backed by a collection rather than a scalar value. */
+export const COLLECTION_SELECT_OPERATORS: QueryOperator[] = [
+  { value: 'includes_any', label: 'Includes any of' },
+  { value: 'includes_all', label: 'Includes all of' },
+  { value: 'includes_none', label: 'Includes none of' },
+]
+
 let fallbackId = 0
 
 /** Creates a unique client-side ID for a condition or group. */
