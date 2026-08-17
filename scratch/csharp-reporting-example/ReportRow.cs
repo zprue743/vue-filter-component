@@ -12,8 +12,8 @@ public sealed class ReportRow
     /// <summary>Gets the stable region value.</summary>
     public required string Region { get; init; }
 
-    /// <summary>Gets the date the row was created.</summary>
-    public DateOnly CreatedDate { get; init; }
+    /// <summary>Gets the date the row was created, when supplied by the database.</summary>
+    public DateOnly? CreatedDate { get; init; }
 
     /// <summary>Gets the revenue represented by the row.</summary>
     public decimal Revenue { get; init; }

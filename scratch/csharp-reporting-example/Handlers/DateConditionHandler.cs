@@ -4,14 +4,14 @@ using System.Text.Json;
 
 namespace Reporting.Criteria.Handlers;
 
-/// <summary>Builds date predicates for a configured field key and property selector.</summary>
+/// <summary>Builds date predicates for a configured nullable or non-nullable property.</summary>
 /// <typeparam name="T">The entity or projection being filtered.</typeparam>
 public sealed class DateConditionHandler<T> : IReportConditionHandler<T>
 {
-    private readonly Expression<Func<T, DateOnly>> _selector;
+    private readonly Expression<Func<T, DateOnly?>> _selector;
 
-    /// <summary>Creates a reusable date handler for one allow-listed field.</summary>
-    public DateConditionHandler(string field, Expression<Func<T, DateOnly>> selector)
+    /// <summary>Creates a reusable date handler for one allow-listed database field.</summary>
+    public DateConditionHandler(string field, Expression<Func<T, DateOnly?>> selector)
     {
         Field = field;
         _selector = selector;
@@ -41,7 +41,7 @@ public sealed class DateConditionHandler<T> : IReportConditionHandler<T>
         var body = Expression.MakeBinary(
             comparison,
             _selector.Body,
-            Expression.Constant(expected));
+            DateConstant(expected));
 
         return Expression.Lambda<Func<T, bool>>(body, _selector.Parameters);
     }
@@ -60,8 +60,8 @@ public sealed class DateConditionHandler<T> : IReportConditionHandler<T>
 
         // The Vue component defines between as an inclusive range.
         var body = Expression.AndAlso(
-            Expression.GreaterThanOrEqual(_selector.Body, Expression.Constant(start)),
-            Expression.LessThanOrEqual(_selector.Body, Expression.Constant(end)));
+            Expression.GreaterThanOrEqual(_selector.Body, DateConstant(start)),
+            Expression.LessThanOrEqual(_selector.Body, DateConstant(end)));
 
         return Expression.Lambda<Func<T, bool>>(body, _selector.Parameters);
     }
@@ -69,6 +69,12 @@ public sealed class DateConditionHandler<T> : IReportConditionHandler<T>
     private static DateOnly ParseDate(JsonElement value)
     {
         return ParseDate(JsonValueReader.GetRequiredString(value));
+    }
+
+    private static UnaryExpression DateConstant(DateOnly value)
+    {
+        // Match the nullable selector type while preserving a parameterizable date value.
+        return Expression.Convert(Expression.Constant(value), typeof(DateOnly?));
     }
 
     private static DateOnly ParseDate(string value)
