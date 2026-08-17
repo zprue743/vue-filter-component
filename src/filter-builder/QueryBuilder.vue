@@ -10,7 +10,7 @@ interface QueryBuilderProps {
   modelValue: QueryGroup
   /** Fields, operators, and selectable values available to the user. */
   fields: QueryField[]
-  /** Maximum number of nested group levels beneath the root. Omit for no limit. */
+  /** Maximum number of nested group levels beneath the root. Defaults to 15. */
   maxNestedGroupDepth?: number
   /** Accessible name for the root section. Use `aria-label` in templates. */
   ariaLabel?: string
@@ -23,7 +23,10 @@ interface QueryBuilderEmits {
 
 withDefaults(
   defineProps<QueryBuilderProps>(),
-  { ariaLabel: 'Query builder' },
+  {
+    ariaLabel: 'Query builder',
+    maxNestedGroupDepth: 15,
+  },
 )
 
 const emit = defineEmits<QueryBuilderEmits>()

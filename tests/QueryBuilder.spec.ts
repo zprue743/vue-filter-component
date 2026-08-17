@@ -16,6 +16,7 @@ describe('QueryBuilder', () => {
     const wrapper = mount(QueryBuilder, { props: { modelValue: createGroup(), fields } })
 
     expect(wrapper.classes()).toContain('query-builder')
+    expect(wrapper.props('maxNestedGroupDepth')).toBe(15)
     expect(wrapper.find('button').text()).toContain('Add condition')
     await wrapper.get('button').trigger('click')
 

@@ -30,6 +30,7 @@ describe('QueryGroupEditor', () => {
       props: { group: createGroup('and', [], 'root'), fields, root: true },
     })
 
+    expect(wrapper.props('maxNestedGroupDepth')).toBe(15)
     const addCondition = wrapper.findAll('button').find((button) => button.text() === 'Add condition')
     await addCondition?.trigger('click')
 

@@ -16,7 +16,7 @@ interface QueryGroupEditorProps {
   root?: boolean
   /** Zero-based nesting depth, where the root group is zero. */
   depth?: number
-  /** Maximum number of group levels allowed beneath the root. */
+  /** Maximum number of group levels allowed beneath the root. Defaults to 15. */
   maxNestedGroupDepth?: number
 }
 
@@ -27,11 +27,14 @@ interface QueryGroupEditorEmits {
   remove: []
 }
 
-const props = withDefaults(defineProps<QueryGroupEditorProps>(), { depth: 0 })
+const props = withDefaults(defineProps<QueryGroupEditorProps>(), {
+  depth: 0,
+  maxNestedGroupDepth: 15,
+})
 const emit = defineEmits<QueryGroupEditorEmits>()
 const currentDepth = computed(() => props.depth ?? 0)
 const canAddGroup = computed(
-  () => props.maxNestedGroupDepth === undefined || currentDepth.value < props.maxNestedGroupDepth,
+  () => currentDepth.value < props.maxNestedGroupDepth,
 )
 
 function updateChild(index: number, child: QueryCondition | QueryGroup) {
