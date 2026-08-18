@@ -13,6 +13,8 @@ public static class ReportCriteriaServiceCollectionExtensions
         services.AddSingleton<IReportConditionHandler<ReportRow>>(
             new SelectConditionHandler<ReportRow>("status", row => row.Status));
         services.AddSingleton<IReportConditionHandler<ReportRow>>(
+            new Int64SelectConditionHandler<ReportRow>("customerId", row => row.Id));
+        services.AddSingleton<IReportConditionHandler<ReportRow>>(
             new DateConditionHandler<ReportRow>("createdDate", row => row.CreatedDate));
         services.AddSingleton<IReportConditionHandler<ReportRow>>(
             new NumberConditionHandler<ReportRow>("revenue", row => row.Revenue));

@@ -38,12 +38,16 @@ Each handler contains the parsing and operator behavior for one value type. Fiel
 services.AddSingleton<IReportConditionHandler<ReportRow>>(
     new SelectConditionHandler<ReportRow>("status", row => row.Status));
 services.AddSingleton<IReportConditionHandler<ReportRow>>(
+    new Int64SelectConditionHandler<ReportRow>("customerId", row => row.Id));
+services.AddSingleton<IReportConditionHandler<ReportRow>>(
     new DateConditionHandler<ReportRow>("createdDate", row => row.CreatedDate));
 services.AddSingleton<IReportConditionHandler<ReportRow>>(
     new NumberConditionHandler<ReportRow>("revenue", row => row.Revenue));
 ```
 
 Additional fields require only another configured handler instance. `DateConditionHandler<T>` accepts both `DateOnly` and `DateOnly?` properties, so nullable database columns use the same registration. A null database value does not match the existing date comparison operators.
+
+For a select backed by a SQL `bigint`, keep option values as strings in the browser (for example, `{ value: '9223372036854775807', label: 'Customer' }`). `Int64SelectConditionHandler<T>` parses those values before constructing the expression, so EF receives a type-matched predicate such as `row.Id == expectedId`. This preserves values outside JavaScript's safe-integer range and avoids applying an often-untranslatable `ToString()` call to the database column. The handler also accepts JSON integer tokens when they are known to be safe in the client.
 
 The registry still dispatches by the saved field key, so this remains compatible with the original design and payload. Reusable handlers remove the need for a separate class for every model property.
 
